@@ -1,0 +1,18 @@
+# Build outputs, generated PDFs and local development state
+**/bin/
+**/obj/
+.runtime/
+.publication-lane/
+evidence/
+artifacts/
+# Personal and machine configuration
+.vs/
+.idea/
+*.user
+*.suo
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+AGENTS.md

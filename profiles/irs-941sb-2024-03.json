@@ -1,0 +1,1810 @@
+{
+  "schema": "pdfform.profile/2",
+  "id": "irs-941sb",
+  "revision": "2024-03",
+  "title": "Schedule B (Form 941), Report of Tax Liability for Semiweekly Schedule Depositors",
+  "source": {
+    "url": "https://www.irs.gov/pub/irs-pdf/f941sb.pdf",
+    "sha256": "95a62159c8367fc50e6b5445f7d80f9a00ac7cdf56d224240fc2776cb545ab63"
+  },
+  "options": {
+    "zeroAmounts": "blank"
+  },
+  "keys": [
+    {
+      "key": "ein",
+      "kind": "split",
+      "section": "Header",
+      "required": true,
+      "label": "Employer identification number (EIN), one digit per box",
+      "parts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "strip": "- ",
+      "pattern": "^[0-9]{9}$",
+      "targets": [
+        [
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_01[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_02[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_03[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_04[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_05[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_06[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_07[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_08[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_09[0]"
+        ]
+      ],
+      "sensitive": false
+    },
+    {
+      "key": "name",
+      "kind": "text",
+      "section": "Header",
+      "label": "Name (not your trade name)",
+      "targets": [
+        "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_10[0]"
+      ],
+      "required": true,
+      "sensitive": false
+    },
+    {
+      "key": "calendarYear",
+      "kind": "split",
+      "section": "Header",
+      "required": true,
+      "label": "Calendar year, one digit per box",
+      "parts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "pattern": "^[0-9]{4}$",
+      "targets": [
+        [
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_11[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_12[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_13[0]",
+          "topmostSubform[0].Page1[0].Header-Entity[0].Entity[0].f1_14[0]"
+        ]
+      ],
+      "sensitive": false
+    },
+    {
+      "key": "quarter",
+      "kind": "oneOf",
+      "section": "Header",
+      "required": true,
+      "label": "Quarter being reported",
+      "options": {
+        "1": [
+          {
+            "target": "topmostSubform[0].Page1[0].c1_1[0]"
+          }
+        ],
+        "2": [
+          {
+            "target": "topmostSubform[0].Page1[0].c1_1[1]"
+          }
+        ],
+        "3": [
+          {
+            "target": "topmostSubform[0].Page1[0].c1_1[2]"
+          }
+        ],
+        "4": [
+          {
+            "target": "topmostSubform[0].Page1[0].c1_1[3]"
+          }
+        ]
+      },
+      "sensitive": false
+    },
+    {
+      "key": "month1.day01",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 1: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_15[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_16[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day02",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 2: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_17[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_18[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day03",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 3: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_19[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_20[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day04",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 4: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_21[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_22[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day05",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 5: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_23[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_24[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day06",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 6: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_25[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_26[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day07",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 7: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_27[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_28[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day08",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 8: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_29[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month1[0].f1_30[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day09",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 9: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_31[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_32[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day10",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 10: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_33[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_34[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day11",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 11: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_35[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_36[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day12",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 12: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_37[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_38[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day13",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 13: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_39[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_40[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day14",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 14: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_41[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_42[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day15",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 15: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_43[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_44[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day16",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 16: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_45[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month1[0].f1_46[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day17",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 17: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_47[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_48[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day18",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 18: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_49[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_50[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day19",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 19: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_51[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_52[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day20",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 20: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_53[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_54[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day21",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 21: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_55[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_56[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day22",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 22: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_57[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_58[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day23",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 23: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_59[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_60[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day24",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 24: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_61[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month1[0].f1_62[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day25",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 25: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_63[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_64[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day26",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 26: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_65[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_66[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day27",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 27: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_67[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_68[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day28",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 28: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_69[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_70[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day29",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 29: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_71[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_72[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day30",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 30: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_73[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_74[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.day31",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Month 1, day 31: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_75[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month1[0].f1_76[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month1.total",
+      "kind": "money",
+      "section": "Month 1 of the quarter",
+      "label": "Tax liability for month 1",
+      "dollars": "topmostSubform[0].Page1[0].f1_77[0]",
+      "cents": "topmostSubform[0].Page1[0].f1_78[0]",
+      "zero": "show",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true
+    },
+    {
+      "key": "month2.day01",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 1: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_79[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_80_[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day02",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 2: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_81[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_82[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day03",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 3: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_83[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_84[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day04",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 4: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_85[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_86[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day05",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 5: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_87[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_88[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day06",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 6: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_89[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_90[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day07",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 7: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_91[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_92[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day08",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 8: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_93[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month2[0].f1_94[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day09",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 9: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_95[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_96[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day10",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 10: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_97[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_98[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day11",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 11: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_99[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_100[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day12",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 12: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_101[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_102[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day13",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 13: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_103[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_104[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day14",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 14: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_105[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_106[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day15",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 15: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_107[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_108[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day16",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 16: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_109[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month2[0].f1_110[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day17",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 17: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_111[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_112[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day18",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 18: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_113[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_114[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day19",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 19: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_115[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_116[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day20",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 20: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_117[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_118[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day21",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 21: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_119[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_120[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day22",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 22: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_121[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_122[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day23",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 23: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_123[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_124[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day24",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 24: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_125[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month2[0].f1_126[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day25",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 25: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_127[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_128[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day26",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 26: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_129[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_130[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day27",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 27: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_131[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_132[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day28",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 28: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_133[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_134[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day29",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 29: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_135[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_136[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day30",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 30: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_137[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_138[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.day31",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Month 2, day 31: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_139[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month2[0].f1_140[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month2.total",
+      "kind": "money",
+      "section": "Month 2 of the quarter",
+      "label": "Tax liability for month 2",
+      "dollars": "topmostSubform[0].Page1[0].f1_141[0]",
+      "cents": "topmostSubform[0].Page1[0].f1_142[0]",
+      "zero": "show",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true
+    },
+    {
+      "key": "month3.day01",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 1: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_143[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_144[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day02",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 2: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_145[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_146[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day03",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 3: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_147[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_148[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day04",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 4: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_149[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_150[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day05",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 5: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_151[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_152[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day06",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 6: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_153[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_154[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day07",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 7: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_155[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_156[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day08",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 8: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_157[0]",
+      "cents": "topmostSubform[0].Page1[0].Day1-8_Month3[0].f1_158[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day09",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 9: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_159[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_160[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day10",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 10: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_161[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_162[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day11",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 11: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_163[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_164[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day12",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 12: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_165[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_166[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day13",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 13: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_167[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_168[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day14",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 14: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_169[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_170[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day15",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 15: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_171[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_172[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day16",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 16: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_173[0]",
+      "cents": "topmostSubform[0].Page1[0].Day9-16_Month3[0].f1_174[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day17",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 17: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_175[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_176[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day18",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 18: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_177[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_178[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day19",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 19: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_179[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_180[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day20",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 20: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_181[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_182[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day21",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 21: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_183[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_184[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day22",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 22: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_185[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_186[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day23",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 23: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_187[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_188[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day24",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 24: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_189[0]",
+      "cents": "topmostSubform[0].Page1[0].Day17-24_Month3[0].f1_190[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day25",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 25: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_191[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_192[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day26",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 26: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_193[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_194[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day27",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 27: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_195[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_196[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day28",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 28: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_197[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_198[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day29",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 29: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_199[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_200[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day30",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 30: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_201[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_202[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.day31",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Month 3, day 31: tax liability for wages paid that day",
+      "dollars": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_203[0]",
+      "cents": "topmostSubform[0].Page1[0].Day25-31_Month3[0].f1_204[0]",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true,
+      "zero": "blank"
+    },
+    {
+      "key": "month3.total",
+      "kind": "money",
+      "section": "Month 3 of the quarter",
+      "label": "Tax liability for month 3",
+      "dollars": "topmostSubform[0].Page1[0].f1_205[0]",
+      "cents": "topmostSubform[0].Page1[0].f1_206[0]",
+      "zero": "show",
+      "required": false,
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true
+    },
+    {
+      "key": "total",
+      "kind": "money",
+      "section": "Total",
+      "label": "Total liability for the quarter (month 1 + 2 + 3); must equal Form 941 line 12",
+      "dollars": "topmostSubform[0].Page1[0].f1_207[0]",
+      "cents": "topmostSubform[0].Page1[0].f1_208[0]",
+      "required": true,
+      "zero": "show",
+      "sensitive": false,
+      "allowNegative": false,
+      "thousands": true
+    }
+  ],
+  "rules": [
+    {
+      "kind": "sum",
+      "total": "month1.total",
+      "terms": [
+        {
+          "key": "month1.day01",
+          "sign": 1
+        },
+        {
+          "key": "month1.day02",
+          "sign": 1
+        },
+        {
+          "key": "month1.day03",
+          "sign": 1
+        },
+        {
+          "key": "month1.day04",
+          "sign": 1
+        },
+        {
+          "key": "month1.day05",
+          "sign": 1
+        },
+        {
+          "key": "month1.day06",
+          "sign": 1
+        },
+        {
+          "key": "month1.day07",
+          "sign": 1
+        },
+        {
+          "key": "month1.day08",
+          "sign": 1
+        },
+        {
+          "key": "month1.day09",
+          "sign": 1
+        },
+        {
+          "key": "month1.day10",
+          "sign": 1
+        },
+        {
+          "key": "month1.day11",
+          "sign": 1
+        },
+        {
+          "key": "month1.day12",
+          "sign": 1
+        },
+        {
+          "key": "month1.day13",
+          "sign": 1
+        },
+        {
+          "key": "month1.day14",
+          "sign": 1
+        },
+        {
+          "key": "month1.day15",
+          "sign": 1
+        },
+        {
+          "key": "month1.day16",
+          "sign": 1
+        },
+        {
+          "key": "month1.day17",
+          "sign": 1
+        },
+        {
+          "key": "month1.day18",
+          "sign": 1
+        },
+        {
+          "key": "month1.day19",
+          "sign": 1
+        },
+        {
+          "key": "month1.day20",
+          "sign": 1
+        },
+        {
+          "key": "month1.day21",
+          "sign": 1
+        },
+        {
+          "key": "month1.day22",
+          "sign": 1
+        },
+        {
+          "key": "month1.day23",
+          "sign": 1
+        },
+        {
+          "key": "month1.day24",
+          "sign": 1
+        },
+        {
+          "key": "month1.day25",
+          "sign": 1
+        },
+        {
+          "key": "month1.day26",
+          "sign": 1
+        },
+        {
+          "key": "month1.day27",
+          "sign": 1
+        },
+        {
+          "key": "month1.day28",
+          "sign": 1
+        },
+        {
+          "key": "month1.day29",
+          "sign": 1
+        },
+        {
+          "key": "month1.day30",
+          "sign": 1
+        },
+        {
+          "key": "month1.day31",
+          "sign": 1
+        }
+      ],
+      "id": "irs-941sb.rule01",
+      "severity": "error"
+    },
+    {
+      "kind": "sum",
+      "total": "month2.total",
+      "terms": [
+        {
+          "key": "month2.day01",
+          "sign": 1
+        },
+        {
+          "key": "month2.day02",
+          "sign": 1
+        },
+        {
+          "key": "month2.day03",
+          "sign": 1
+        },
+        {
+          "key": "month2.day04",
+          "sign": 1
+        },
+        {
+          "key": "month2.day05",
+          "sign": 1
+        },
+        {
+          "key": "month2.day06",
+          "sign": 1
+        },
+        {
+          "key": "month2.day07",
+          "sign": 1
+        },
+        {
+          "key": "month2.day08",
+          "sign": 1
+        },
+        {
+          "key": "month2.day09",
+          "sign": 1
+        },
+        {
+          "key": "month2.day10",
+          "sign": 1
+        },
+        {
+          "key": "month2.day11",
+          "sign": 1
+        },
+        {
+          "key": "month2.day12",
+          "sign": 1
+        },
+        {
+          "key": "month2.day13",
+          "sign": 1
+        },
+        {
+          "key": "month2.day14",
+          "sign": 1
+        },
+        {
+          "key": "month2.day15",
+          "sign": 1
+        },
+        {
+          "key": "month2.day16",
+          "sign": 1
+        },
+        {
+          "key": "month2.day17",
+          "sign": 1
+        },
+        {
+          "key": "month2.day18",
+          "sign": 1
+        },
+        {
+          "key": "month2.day19",
+          "sign": 1
+        },
+        {
+          "key": "month2.day20",
+          "sign": 1
+        },
+        {
+          "key": "month2.day21",
+          "sign": 1
+        },
+        {
+          "key": "month2.day22",
+          "sign": 1
+        },
+        {
+          "key": "month2.day23",
+          "sign": 1
+        },
+        {
+          "key": "month2.day24",
+          "sign": 1
+        },
+        {
+          "key": "month2.day25",
+          "sign": 1
+        },
+        {
+          "key": "month2.day26",
+          "sign": 1
+        },
+        {
+          "key": "month2.day27",
+          "sign": 1
+        },
+        {
+          "key": "month2.day28",
+          "sign": 1
+        },
+        {
+          "key": "month2.day29",
+          "sign": 1
+        },
+        {
+          "key": "month2.day30",
+          "sign": 1
+        },
+        {
+          "key": "month2.day31",
+          "sign": 1
+        }
+      ],
+      "id": "irs-941sb.rule02",
+      "severity": "error"
+    },
+    {
+      "kind": "sum",
+      "total": "month3.total",
+      "terms": [
+        {
+          "key": "month3.day01",
+          "sign": 1
+        },
+        {
+          "key": "month3.day02",
+          "sign": 1
+        },
+        {
+          "key": "month3.day03",
+          "sign": 1
+        },
+        {
+          "key": "month3.day04",
+          "sign": 1
+        },
+        {
+          "key": "month3.day05",
+          "sign": 1
+        },
+        {
+          "key": "month3.day06",
+          "sign": 1
+        },
+        {
+          "key": "month3.day07",
+          "sign": 1
+        },
+        {
+          "key": "month3.day08",
+          "sign": 1
+        },
+        {
+          "key": "month3.day09",
+          "sign": 1
+        },
+        {
+          "key": "month3.day10",
+          "sign": 1
+        },
+        {
+          "key": "month3.day11",
+          "sign": 1
+        },
+        {
+          "key": "month3.day12",
+          "sign": 1
+        },
+        {
+          "key": "month3.day13",
+          "sign": 1
+        },
+        {
+          "key": "month3.day14",
+          "sign": 1
+        },
+        {
+          "key": "month3.day15",
+          "sign": 1
+        },
+        {
+          "key": "month3.day16",
+          "sign": 1
+        },
+        {
+          "key": "month3.day17",
+          "sign": 1
+        },
+        {
+          "key": "month3.day18",
+          "sign": 1
+        },
+        {
+          "key": "month3.day19",
+          "sign": 1
+        },
+        {
+          "key": "month3.day20",
+          "sign": 1
+        },
+        {
+          "key": "month3.day21",
+          "sign": 1
+        },
+        {
+          "key": "month3.day22",
+          "sign": 1
+        },
+        {
+          "key": "month3.day23",
+          "sign": 1
+        },
+        {
+          "key": "month3.day24",
+          "sign": 1
+        },
+        {
+          "key": "month3.day25",
+          "sign": 1
+        },
+        {
+          "key": "month3.day26",
+          "sign": 1
+        },
+        {
+          "key": "month3.day27",
+          "sign": 1
+        },
+        {
+          "key": "month3.day28",
+          "sign": 1
+        },
+        {
+          "key": "month3.day29",
+          "sign": 1
+        },
+        {
+          "key": "month3.day30",
+          "sign": 1
+        },
+        {
+          "key": "month3.day31",
+          "sign": 1
+        }
+      ],
+      "id": "irs-941sb.rule03",
+      "severity": "error"
+    },
+    {
+      "kind": "sum",
+      "total": "total",
+      "terms": [
+        {
+          "key": "month1.total",
+          "sign": 1
+        },
+        {
+          "key": "month2.total",
+          "sign": 1
+        },
+        {
+          "key": "month3.total",
+          "sign": 1
+        }
+      ],
+      "id": "irs-941sb.rule04",
+      "severity": "error"
+    }
+  ],
+  "unmapped": [],
+  "profileVersion": 1,
+  "template": {
+    "sha256Allowlist": [
+      "95a62159c8367fc50e6b5445f7d80f9a00ac7cdf56d224240fc2776cb545ab63"
+    ],
+    "title": "Schedule B (Form 941) (Rev. March 2024)",
+    "pageCount": 1,
+    "structureFingerprintV1": "sha256:627aa3ebd89a32cf9ff5a9631dcacf91f2291181b452be4f4b3e206fc1a9cc69"
+  },
+  "capabilities": [
+    "text.singleWidget",
+    "checkbox.singleWidget",
+    "xfa.staticHybrid"
+  ],
+  "filingYears": [
+    "2026"
+  ]
+}

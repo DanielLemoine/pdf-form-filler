@@ -1,0 +1,25 @@
+{
+  "schema": "pdfform.data/2",
+  "profile": "irs-941sb@2024-03",
+  "values": {
+    "ein": "123456789",
+    "name": "SAMPLE CITY OF EXAMPLEVILLE",
+    "calendarYear": "2026",
+    "quarter": "3",
+    "month1.day10": "4550.00",
+    "month1.day24": "4550.00",
+    "month1.total": "9100.00",
+    "month2.day07": "4550.00",
+    "month2.day21": "4550.00",
+    "month2.total": "9100.00",
+    "month3.day04": "4550.00",
+    "month3.day18": "4550.00",
+    "month3.total": "9100.00",
+    "total": "27300.00"
+  },
+  "context": {
+    "taxYear": "2026",
+    "quarter": "3",
+    "liabilityReporting": "semiweekly"
+  }
+}

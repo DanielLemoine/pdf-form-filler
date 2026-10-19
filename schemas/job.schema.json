@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:job:2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "pdfform.job/2"
+    },
+    "requestId": {
+      "type": "string",
+      "minLength": 0,
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "policy": {
+      "const": "irs-941-packet/1"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "alias": {
+            "enum": [
+              "941",
+              "941sb"
+            ]
+          },
+          "pdf": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile": {
+            "type": "string",
+            "minLength": 1
+          },
+          "data": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "alias",
+          "pdf",
+          "profile",
+          "data",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 2
+    },
+    "flatten": {
+      "type": "boolean"
+    },
+    "packet": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "document": {
+                "enum": [
+                  "941",
+                  "941sb"
+                ]
+              },
+              "pages": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minItems": 1,
+                "maxItems": 3,
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "document",
+              "pages"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "output",
+        "pages"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema",
+    "requestId",
+    "policy",
+    "documents",
+    "flatten"
+  ],
+  "additionalProperties": false
+}

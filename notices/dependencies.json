@@ -1,0 +1,527 @@
+{
+  "schema": "pdfform-public-dependency-inventory/1",
+  "packages": [
+    {
+      "name": "BouncyCastle.Cryptography",
+      "version": "2.7.0",
+      "contentHash": "U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://www.bouncycastle.org/stable/nuget/csharp/website",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "https://github.com/bcgit/bc-csharp",
+            "branch": "refs/heads/release/v2.7",
+            "commit": "4007498b13582d90ee1eda5d9920c324428b98b3"
+          }
+        }
+      }
+    },
+    {
+      "name": "itext",
+      "version": "9.8.0",
+      "contentHash": "p98MrglyOP5SQdY2rkK65R9IjRtaVE37UT/FptQTmsO8HPKAYZgWbGrMcGlxKL/b9rdHA6htSsAdf80N9KPLdA==",
+      "directIn": [
+        "src/PdfForm.Pdf/packages.lock.json"
+      ],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "licenseUrl": {
+          "text": "https://www.gnu.org/licenses/agpl.html",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://itextpdf.com/products/itext-core",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "https://github.com/itext/itext-dotnet"
+          }
+        }
+      }
+    },
+    {
+      "name": "itext.bouncy-castle-adapter",
+      "version": "9.8.0",
+      "contentHash": "3NBR1CByr6gwWSwYgEpT5zaCi3Xd1fZF/qPt1IfemX2LAh76IPH5mtV/C1YYe4g4eSCKx7I5WeAocOpTlDOW7w==",
+      "directIn": [
+        "src/PdfForm.Pdf/packages.lock.json"
+      ],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "licenseUrl": {
+          "text": "https://www.gnu.org/licenses/agpl.html",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://itextpdf.com/",
+          "attributes": {}
+        }
+      }
+    },
+    {
+      "name": "itext.commons",
+      "version": "9.8.0",
+      "contentHash": "0rzuGfScGe9pZScX5d4GpNijZV/KgjDWNF4pFsYqj3NNi7MVF5Q2ftNpIuQicDJybapIbnN6/piVqnWJ4DC2HQ==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "licenseUrl": {
+          "text": "https://www.gnu.org/licenses/agpl.html",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://itextpdf.com/",
+          "attributes": {}
+        }
+      }
+    },
+    {
+      "name": "Microsoft.DotNet.PlatformAbstractions",
+      "version": "1.1.0",
+      "contentHash": "Bl6KYfbFSIW3QIRHAp931iR5h01qHjKghdpAtncwbzNUs0+IUZ+XfwkIU0sQsR33ufGvi3u4dZMIYYFysjpHAA==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {}
+    },
+    {
+      "name": "Microsoft.Extensions.DependencyInjection",
+      "version": "5.0.0",
+      "contentHash": "Rc2kb/p3Ze6cP6rhFC3PJRdWGbLvSHZc0ev7YlyeU6FmHciDMLrhoVoTUEzKPhN5ZjFgKF1Cf5fOz8mCMIkvpA==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://github.com/dotnet/runtime",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "git://github.com/dotnet/runtime",
+            "commit": "cf258a14b70ad9069470a108f13765e0e5988f51"
+          }
+        }
+      }
+    },
+    {
+      "name": "Microsoft.Extensions.DependencyInjection.Abstractions",
+      "version": "5.0.0",
+      "contentHash": "ORj7Zh81gC69TyvmcUm9tSzytcy8AVousi+IVRAI8nLieQjOFryRusSFh7+aLk16FN9pQNqJAiMd7BTKINK0kA==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://github.com/dotnet/runtime",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "git://github.com/dotnet/runtime",
+            "commit": "cf258a14b70ad9069470a108f13765e0e5988f51"
+          }
+        }
+      }
+    },
+    {
+      "name": "Microsoft.Extensions.DependencyModel",
+      "version": "10.0.2",
+      "contentHash": "DHXzj/FKmUDmhzw7AHbMXbNNcgO8Cb9PDbYOUDICjFAdIALy2WbC6pm+dFKiAUNtcYMucZu2iMVw1ef/sdcZFw==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://dot.net/",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "https://github.com/dotnet/dotnet",
+            "commit": "44525024595742ebe09023abe709df51de65009b"
+          }
+        }
+      }
+    },
+    {
+      "name": "Microsoft.Extensions.Logging",
+      "version": "5.0.0",
+      "contentHash": "MgOwK6tPzB6YNH21wssJcw/2MKwee8b2gI7SllYfn6rvTpIrVvVS5HAjSU2vqSku1fwqRvWP0MdIi14qjd93Aw==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://github.com/dotnet/runtime",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "git://github.com/dotnet/runtime",
+            "commit": "cf258a14b70ad9069470a108f13765e0e5988f51"
+          }
+        }
+      }
+    },
+    {
+      "name": "Microsoft.Extensions.Logging.Abstractions",
+      "version": "5.0.0",
+      "contentHash": "NxP6ahFcBnnSfwNBi2KH2Oz8Xl5Sm2krjId/jRR3I7teFphwiUoUeZPwTNA21EX+5PtjqmyAvKaOeBXcJjcH/w==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://github.com/dotnet/runtime",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "git://github.com/dotnet/runtime",
+            "commit": "cf258a14b70ad9069470a108f13765e0e5988f51"
+          }
+        }
+      }
+    },
+    {
+      "name": "Microsoft.Extensions.Options",
+      "version": "5.0.0",
+      "contentHash": "CBvR92TCJ5uBIdd9/HzDSrxYak+0W/3+yxrNg8Qm6Bmrkh5L+nu6m3WeazQehcZ5q1/6dDA7J5YdQjim0165zg==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://github.com/dotnet/runtime",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "git://github.com/dotnet/runtime",
+            "commit": "cf258a14b70ad9069470a108f13765e0e5988f51"
+          }
+        }
+      }
+    },
+    {
+      "name": "Microsoft.Extensions.Primitives",
+      "version": "5.0.0",
+      "contentHash": "cI/VWn9G1fghXrNDagX9nYaaB/nokkZn0HYAawGaELQrl8InSezfe9OnfPZLcJq3esXxygh3hkq2c3qoV3SDyQ==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://github.com/dotnet/runtime",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "git://github.com/dotnet/runtime",
+            "commit": "cf258a14b70ad9069470a108f13765e0e5988f51"
+          }
+        }
+      }
+    },
+    {
+      "name": "System.Security.Cryptography.Pkcs",
+      "version": "6.0.5",
+      "contentHash": "eWlSq9kImkq+nDaFH/NnxVtzvZB6gRyFW/SLSMrqsR34hyoBx9++NuBrZbBqeE1UXNkl42EyGhuOxuboZCMByg==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://dot.net/",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "https://github.com/dotnet/runtime",
+            "commit": "f1dd57165bfd91875761329ac3a8b17f6606ad18"
+          }
+        }
+      }
+    },
+    {
+      "name": "System.Security.Cryptography.Xml",
+      "version": "6.0.2",
+      "contentHash": "8K1hhUWBhVIq0RJxa2M3pUpgcRIDhqwFUq0v44D9vnAsW0yRVLeJiSmDXtsPZOMyqo9uxnzLKWwhsux0NW0thQ==",
+      "directIn": [],
+      "presentIn": [
+        "src/PdfForm.AppearanceSpike/packages.lock.json",
+        "src/PdfForm.Cli/packages.lock.json",
+        "src/PdfForm.Pdf/packages.lock.json",
+        "tests/PdfForm.Cli.Tests/packages.lock.json",
+        "tests/PdfForm.Pdf.Tests/packages.lock.json",
+        "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json"
+      ],
+      "nuspecLicenseMetadata": {
+        "license": {
+          "text": "MIT",
+          "attributes": {
+            "type": "expression"
+          }
+        },
+        "licenseUrl": {
+          "text": "https://licenses.nuget.org/MIT",
+          "attributes": {}
+        },
+        "projectUrl": {
+          "text": "https://dot.net/",
+          "attributes": {}
+        },
+        "repository": {
+          "text": null,
+          "attributes": {
+            "type": "git",
+            "url": "https://github.com/dotnet/runtime",
+            "commit": "f1dd57165bfd91875761329ac3a8b17f6606ad18"
+          }
+        }
+      }
+    }
+  ],
+  "lockfiles": [
+    {
+      "path": "src/PdfForm.AppearanceSpike/packages.lock.json",
+      "sha256": "eb25842ae33661a4b12fd0b21ac3eb027e7552b0b472e921029f712e11e3ed6d"
+    },
+    {
+      "path": "src/PdfForm.Cli/packages.lock.json",
+      "sha256": "eb25842ae33661a4b12fd0b21ac3eb027e7552b0b472e921029f712e11e3ed6d"
+    },
+    {
+      "path": "src/PdfForm.Core/packages.lock.json",
+      "sha256": "a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb"
+    },
+    {
+      "path": "src/PdfForm.Pdf/packages.lock.json",
+      "sha256": "7e1cc466c0b4635fb133a41f0f0a2f2fed2bfb6b706789ae4cdcc1575a9bb227"
+    },
+    {
+      "path": "src/PdfForm.Publication/packages.lock.json",
+      "sha256": "a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb"
+    },
+    {
+      "path": "tests/PdfForm.Cli.Tests/packages.lock.json",
+      "sha256": "5d56cce9dc97ba8a3cc14c5088e9f63fcff889ba6f90a20835e3093b6b0aa197"
+    },
+    {
+      "path": "tests/PdfForm.Core.Tests/packages.lock.json",
+      "sha256": "6b23a4667e6f83b66b7a8e9a7fb54ca9c545b08ad19847e52c23c5b2dca3debf"
+    },
+    {
+      "path": "tests/PdfForm.Pdf.Tests/packages.lock.json",
+      "sha256": "eb25842ae33661a4b12fd0b21ac3eb027e7552b0b472e921029f712e11e3ed6d"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/packages.lock.json",
+      "sha256": "ceb4c43b90981b8012404d2c9979cc25a5725b471fe38854dd153034214a45af"
+    },
+    {
+      "path": "tests/PdfForm.VerifiedFill.IntegrationTests/packages.lock.json",
+      "sha256": "eb25842ae33661a4b12fd0b21ac3eb027e7552b0b472e921029f712e11e3ed6d"
+    }
+  ],
+  "scope": "Package metadata and exact lock content hashes; not a binary provenance or legal-clearance assertion."
+}

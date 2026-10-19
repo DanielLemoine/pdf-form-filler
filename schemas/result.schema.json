@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:result:2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "pdfform.result/2"
+    },
+    "requestId": {
+      "type": "string",
+      "minLength": 0,
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "validation_failed",
+        "input_error",
+        "profile_invalid",
+        "unsupported",
+        "mismatch",
+        "internal_error"
+      ]
+    },
+    "exitCode": {
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "artifactState": {
+      "enum": [
+        "none",
+        "staged",
+        "published"
+      ]
+    },
+    "validationLevels": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": [
+          "passed",
+          "failed",
+          "not_run"
+        ]
+      }
+    },
+    "tool": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "build": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceReference": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "build",
+        "engine",
+        "runtime",
+        "sourceReference"
+      ],
+      "additionalProperties": false
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "profileVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "profileVersion",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "stage": {
+            "enum": [
+              "syntax",
+              "profile",
+              "data",
+              "binding",
+              "packet",
+              "render",
+              "publication",
+              "internal"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "key": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "field": {
+            "type": "string",
+            "minLength": 0
+          },
+          "ruleId": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "stage",
+          "message",
+          "severity"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "stage": {
+            "enum": [
+              "syntax",
+              "profile",
+              "data",
+              "binding",
+              "packet",
+              "render",
+              "publication",
+              "internal"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "key": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "field": {
+            "type": "string",
+            "minLength": 0
+          },
+          "ruleId": {
+            "type": "string",
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "stage",
+          "message",
+          "severity"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "filingReadiness": {
+      "const": "not_assessed"
+    }
+  },
+  "required": [
+    "schema",
+    "operation",
+    "status",
+    "exitCode",
+    "artifactState",
+    "validationLevels",
+    "tool",
+    "profiles",
+    "templates",
+    "outputs",
+    "errors",
+    "warnings",
+    "stats",
+    "filingReadiness"
+  ],
+  "additionalProperties": false
+}

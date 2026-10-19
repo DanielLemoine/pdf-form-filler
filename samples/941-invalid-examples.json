@@ -1,0 +1,27 @@
+{
+  "schema": "pdfform.data/2",
+  "profile": "irs-941@2026-03",
+  "values": {
+    "ein": "12-345678",
+    "quarter": "5",
+    "address.street": "100 MAIN ST",
+    "address.city": "EXAMPLEVILLE",
+    "address.zip": "9700",
+    "line1.employees": "42",
+    "line2.wages": "100,000.00",
+    "line3.federalIncomeTaxWithheld": "-50.00",
+    "line5a.ssTax": "12400.00",
+    "line5e.totalSsMedicareTax": "15300.00",
+    "line12.totalTaxes": "27300.00",
+    "line15c.routingNumber": "123456789",
+    "line16.depositSchedule": "monthly",
+    "line17.businessClosed": "maybe",
+    "line17.finalWageDate": "09/25/2026",
+    "line99.typo": "1"
+  },
+  "context": {
+    "taxYear": "2026",
+    "quarter": "3",
+    "liabilityReporting": "monthly"
+  }
+}

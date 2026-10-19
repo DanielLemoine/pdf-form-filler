@@ -1,0 +1,45 @@
+{
+  "schema": "audit-golden-expectations/1",
+  "status": "STATIC ASSETS ONLY; NOT EXECUTED",
+  "requestId": "golden-request-1",
+  "toolBuild": "golden-build-1",
+  "files": [
+    {
+      "id": "alpha",
+      "path": "forms/a.pdf",
+      "bytes": 32,
+      "sha256": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd"
+    },
+    {
+      "id": "beta",
+      "path": "forms/b.pdf",
+      "bytes": 32,
+      "sha256": "72dbb7336c76780023f83da4c355f2eeea85733b13d3477697917790c1229084"
+    },
+    {
+      "id": "result",
+      "path": "result.json",
+      "bytes": 1199,
+      "sha256": "ef20ab2556c11c3d7126be5c418b120a318e77a00cda7c04740f90ef643ed89e"
+    },
+    {
+      "id": "completion",
+      "path": "completion.json",
+      "bytes": 473,
+      "sha256": "6f881ad6c41f4c6b024b78fca550d6738535728c6168309bbc457bfcf430ef0e"
+    }
+  ],
+  "directories": [
+    "forms"
+  ],
+  "artifactTotalBytes": 64,
+  "actualTotalBytes": 1736,
+  "limits": {
+    "maxArtifactBytes": 64,
+    "maxManifestBytes": 8192,
+    "maxTotalBytes": 1048576,
+    "maxArtifacts": 4
+  },
+  "plannedReservedBytes": 16448,
+  "sourceArchiveSha256": "bc18e116d07aca68c0aa37e6ff40d9c536e36846522e76e75e80adec9636375e"
+}

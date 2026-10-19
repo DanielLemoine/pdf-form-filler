@@ -1,0 +1,458 @@
+[
+  {
+    "key": "ein",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_1[0]",
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_2[0]",
+      "topmostSubform[0].Page2[0].EIN_Number[0].f1_1[0]",
+      "topmostSubform[0].Page2[0].EIN_Number[0].f1_2[0]",
+      "topmostSubform[0].Page3[0].EIN_Number[0].f1_1[0]",
+      "topmostSubform[0].Page3[0].EIN_Number[0].f1_2[0]"
+    ]
+  },
+  {
+    "key": "name",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_3[0]",
+      "topmostSubform[0].Page2[0].Name_ReadOrder[0].f1_3[0]",
+      "topmostSubform[0].Page3[0].f1_3[0]"
+    ]
+  },
+  {
+    "key": "tradeName",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_4[0]"
+    ]
+  },
+  {
+    "key": "address.street",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_5[0]"
+    ]
+  },
+  {
+    "key": "address.city",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_6[0]"
+    ]
+  },
+  {
+    "key": "address.state",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_7[0]"
+    ]
+  },
+  {
+    "key": "address.zip",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_8[0]"
+    ]
+  },
+  {
+    "key": "address.foreignCountry",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_9[0]"
+    ]
+  },
+  {
+    "key": "address.foreignProvince",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_10[0]"
+    ]
+  },
+  {
+    "key": "address.foreignPostalCode",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].EntityArea[0].f1_11[0]"
+    ]
+  },
+  {
+    "key": "quarter",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].ReportForQuarter[0].c1_1[0]",
+      "topmostSubform[0].Page3[0].Line3_ReadOrder[0].c4_1[0]",
+      "topmostSubform[0].Page1[0].Header[0].ReportForQuarter[0].c1_1[1]",
+      "topmostSubform[0].Page3[0].Line3_ReadOrder[0].c4_1[1]",
+      "topmostSubform[0].Page1[0].Header[0].ReportForQuarter[0].c1_1[2]",
+      "topmostSubform[0].Page3[0].Line3_ReadOrder[0].c4_1[2]",
+      "topmostSubform[0].Page1[0].Header[0].ReportForQuarter[0].c1_1[3]",
+      "topmostSubform[0].Page3[0].Line3_ReadOrder[0].c4_1[3]"
+    ]
+  },
+  {
+    "key": "aggregateFilerType",
+    "targets": [
+      "topmostSubform[0].Page1[0].Header[0].AggregateReturn[0].c1_2[0]",
+      "topmostSubform[0].Page1[0].Header[0].AggregateReturn[0].c1_2[1]",
+      "topmostSubform[0].Page1[0].Header[0].AggregateReturn[0].c1_2[2]"
+    ]
+  },
+  {
+    "key": "line1.employees",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_12[0]"
+    ]
+  },
+  {
+    "key": "line2.wages",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_13[0]",
+      "topmostSubform[0].Page1[0].f1_14[0]"
+    ]
+  },
+  {
+    "key": "line3.federalIncomeTaxWithheld",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_15[0]",
+      "topmostSubform[0].Page1[0].f1_16[0]"
+    ]
+  },
+  {
+    "key": "line4.noSsMedicare",
+    "targets": [
+      "topmostSubform[0].Page1[0].c1_3[0]"
+    ]
+  },
+  {
+    "key": "line5a.ssWages",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_17[0]",
+      "topmostSubform[0].Page1[0].f1_18[0]"
+    ]
+  },
+  {
+    "key": "line5a.ssTax",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_19[0]",
+      "topmostSubform[0].Page1[0].f1_20[0]"
+    ]
+  },
+  {
+    "key": "line5b.ssTips",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_21[0]",
+      "topmostSubform[0].Page1[0].f1_22[0]"
+    ]
+  },
+  {
+    "key": "line5b.ssTipsTax",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_23[0]",
+      "topmostSubform[0].Page1[0].f1_24[0]"
+    ]
+  },
+  {
+    "key": "line5c.medicareWagesTips",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_25[0]",
+      "topmostSubform[0].Page1[0].f1_26[0]"
+    ]
+  },
+  {
+    "key": "line5c.medicareTax",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_27[0]",
+      "topmostSubform[0].Page1[0].f1_28[0]"
+    ]
+  },
+  {
+    "key": "line5d.addlMedicareWages",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_29[0]",
+      "topmostSubform[0].Page1[0].f1_30[0]"
+    ]
+  },
+  {
+    "key": "line5d.addlMedicareTax",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_31[0]",
+      "topmostSubform[0].Page1[0].f1_32[0]"
+    ]
+  },
+  {
+    "key": "line5e.totalSsMedicareTax",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_33[0]",
+      "topmostSubform[0].Page1[0].f1_34[0]"
+    ]
+  },
+  {
+    "key": "line5f.section3121qTax",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_35[0]",
+      "topmostSubform[0].Page1[0].f1_36[0]"
+    ]
+  },
+  {
+    "key": "line6.totalBeforeAdjustments",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_37[0]",
+      "topmostSubform[0].Page1[0].f1_38[0]"
+    ]
+  },
+  {
+    "key": "line7.fractionsOfCents",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_39[0]",
+      "topmostSubform[0].Page1[0].f1_40[0]"
+    ]
+  },
+  {
+    "key": "line8.sickPay",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_41[0]",
+      "topmostSubform[0].Page1[0].f1_42[0]"
+    ]
+  },
+  {
+    "key": "line9.tipsAndGroupTermLife",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_43[0]",
+      "topmostSubform[0].Page1[0].f1_44[0]"
+    ]
+  },
+  {
+    "key": "line10.totalAfterAdjustments",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_45[0]",
+      "topmostSubform[0].Page1[0].f1_46[0]"
+    ]
+  },
+  {
+    "key": "line11.researchCredit",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_47[0]",
+      "topmostSubform[0].Page1[0].f1_48[0]"
+    ]
+  },
+  {
+    "key": "line12.totalTaxes",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_49[0]",
+      "topmostSubform[0].Page1[0].f1_50[0]"
+    ]
+  },
+  {
+    "key": "line13.totalDeposits",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_51[0]",
+      "topmostSubform[0].Page1[0].f1_52[0]"
+    ]
+  },
+  {
+    "key": "line14.balanceDue",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_53[0]",
+      "topmostSubform[0].Page1[0].f1_54[0]"
+    ]
+  },
+  {
+    "key": "line15a.overpayment",
+    "targets": [
+      "topmostSubform[0].Page1[0].f1_55[0]",
+      "topmostSubform[0].Page1[0].f1_56[0]"
+    ]
+  },
+  {
+    "key": "line15b.overpaymentChoice",
+    "targets": [
+      "topmostSubform[0].Page1[0].c1_4[0]",
+      "topmostSubform[0].Page1[0].c1_4[1]"
+    ]
+  },
+  {
+    "key": "line15c.routingNumber",
+    "targets": [
+      "topmostSubform[0].Page1[0].RoutingNo[0].f1_57[0]"
+    ]
+  },
+  {
+    "key": "line15d.accountType",
+    "targets": [
+      "topmostSubform[0].Page1[0].c1_5[0]",
+      "topmostSubform[0].Page1[0].c1_5[1]"
+    ]
+  },
+  {
+    "key": "line15e.accountNumber",
+    "targets": [
+      "topmostSubform[0].Page1[0].AccountNo[0].f1_58[0]"
+    ]
+  },
+  {
+    "key": "line16.depositSchedule",
+    "targets": [
+      "topmostSubform[0].Page2[0].c2_1[0]",
+      "topmostSubform[0].Page2[0].c2_1[1]",
+      "topmostSubform[0].Page2[0].c2_1[2]"
+    ]
+  },
+  {
+    "key": "line16.month1",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_1[0]",
+      "topmostSubform[0].Page2[0].f2_2[0]"
+    ]
+  },
+  {
+    "key": "line16.month2",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_3[0]",
+      "topmostSubform[0].Page2[0].f2_4[0]"
+    ]
+  },
+  {
+    "key": "line16.month3",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_5[0]",
+      "topmostSubform[0].Page2[0].f2_6[0]"
+    ]
+  },
+  {
+    "key": "line16.total",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_7[0]",
+      "topmostSubform[0].Page2[0].f2_8[0]"
+    ]
+  },
+  {
+    "key": "line17.businessClosed",
+    "targets": [
+      "topmostSubform[0].Page2[0].c2_2[0]"
+    ]
+  },
+  {
+    "key": "line17.finalWageDate",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_9[0]"
+    ]
+  },
+  {
+    "key": "line18.seasonalEmployer",
+    "targets": [
+      "topmostSubform[0].Page2[0].c2_3[0]"
+    ]
+  },
+  {
+    "key": "designee.allowed",
+    "targets": [
+      "topmostSubform[0].Page2[0].c2_4[0]",
+      "topmostSubform[0].Page2[0].c2_4[1]"
+    ]
+  },
+  {
+    "key": "designee.name",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_10[0]"
+    ]
+  },
+  {
+    "key": "designee.phone",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_11[0]"
+    ]
+  },
+  {
+    "key": "designee.pin",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_12[0]"
+    ]
+  },
+  {
+    "key": "signer.name",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_13[0]"
+    ]
+  },
+  {
+    "key": "signer.title",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_14[0]"
+    ]
+  },
+  {
+    "key": "signer.phone",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_15[0]"
+    ]
+  },
+  {
+    "key": "preparer.selfEmployed",
+    "targets": [
+      "topmostSubform[0].Page2[0].c2_5[0]"
+    ]
+  },
+  {
+    "key": "preparer.name",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_16[0]"
+    ]
+  },
+  {
+    "key": "preparer.ptin",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_17[0]"
+    ]
+  },
+  {
+    "key": "preparer.firmName",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_18[0]"
+    ]
+  },
+  {
+    "key": "preparer.firmEin",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_19[0]"
+    ]
+  },
+  {
+    "key": "preparer.address",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_20[0]"
+    ]
+  },
+  {
+    "key": "preparer.phone",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_21[0]"
+    ]
+  },
+  {
+    "key": "preparer.city",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_22[0]"
+    ]
+  },
+  {
+    "key": "preparer.state",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_23[0]"
+    ]
+  },
+  {
+    "key": "preparer.zip",
+    "targets": [
+      "topmostSubform[0].Page2[0].f2_24[0]"
+    ]
+  },
+  {
+    "key": "voucher.amount",
+    "targets": [
+      "topmostSubform[0].Page3[0].f4_2[0]",
+      "topmostSubform[0].Page3[0].f4_3[0]"
+    ]
+  },
+  {
+    "key": "voucher.address",
+    "targets": [
+      "topmostSubform[0].Page3[0].f4_5[0]"
+    ]
+  },
+  {
+    "key": "voucher.cityStateZip",
+    "targets": [
+      "topmostSubform[0].Page3[0].f4_6[0]"
+    ]
+  }
+]

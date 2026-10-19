@@ -1,0 +1,634 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:inspect:2",
+  "title": "PDF Form Tool structure-only inspection v2",
+  "description": "Camel-case wire format. Null optional members are omitted. State distinguishes missing, false, true and invalid PDF Booleans. No values, defaults, arbitrary metadata, tooltip text, script bodies or XFA datasets.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "pdfform.inspect/2"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 52428800
+    },
+    "pages": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "encrypted": {
+      "type": "boolean"
+    },
+    "hasAcroForm": {
+      "type": "boolean"
+    },
+    "catalogJavaScriptCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "catalogJavaScript": {
+      "$ref": "#/$defs/catalogJavaScript"
+    },
+    "exactApprovedTemplate": {
+      "type": "boolean"
+    },
+    "approvedTemplateId": {
+      "type": "string"
+    },
+    "approvedTitle": {
+      "type": "string"
+    },
+    "structureFingerprintV1": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "needAppearances": {
+      "$ref": "#/$defs/pdfBoolean"
+    },
+    "needsRendering": {
+      "$ref": "#/$defs/pdfBoolean"
+    },
+    "xfa": {
+      "$ref": "#/$defs/xfa"
+    },
+    "signatures": {
+      "$ref": "#/$defs/signature"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/field"
+      },
+      "maxItems": 10000
+    },
+    "orphanWidgets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/widget"
+      }
+    },
+    "terminalFieldCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "widgetCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capability"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "initialStructureSupported": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema",
+    "sha256",
+    "bytes",
+    "pages",
+    "encrypted",
+    "hasAcroForm",
+    "catalogJavaScriptCount",
+    "catalogJavaScript",
+    "exactApprovedTemplate",
+    "needAppearances",
+    "needsRendering",
+    "xfa",
+    "signatures",
+    "fields",
+    "orphanWidgets",
+    "terminalFieldCount",
+    "widgetCount",
+    "capabilities",
+    "findings",
+    "initialStructureSupported"
+  ],
+  "$defs": {
+    "pdfBoolean": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": [
+            "missing",
+            "false",
+            "true",
+            "invalid"
+          ]
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "false"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value"
+            ],
+            "properties": {
+              "value": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "true"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value"
+            ],
+            "properties": {
+              "value": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "missing",
+                  "invalid"
+                ]
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fieldFlags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "readOnly": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "noExport": {
+          "type": "boolean"
+        },
+        "multiline": {
+          "type": "boolean"
+        },
+        "password": {
+          "type": "boolean"
+        },
+        "comb": {
+          "type": "boolean"
+        },
+        "richText": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "readOnly",
+        "required",
+        "noExport",
+        "multiline",
+        "password",
+        "comb",
+        "richText"
+      ]
+    },
+    "font": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number"
+        },
+        "subtype": {
+          "enum": [
+            "Type1",
+            "TrueType",
+            "Type0",
+            "Type3",
+            "MMType1",
+            "unknown"
+          ]
+        },
+        "resourcePresent": {
+          "type": "boolean"
+        },
+        "embedded": {
+          "type": "boolean"
+        },
+        "attributeSource": {
+          "enum": [
+            "fieldOrWidget",
+            "acroForm",
+            "ancestor"
+          ]
+        }
+      },
+      "required": [
+        "resourcePresent",
+        "embedded",
+        "attributeSource"
+      ]
+    },
+    "effective": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "flags": {
+          "$ref": "#/$defs/fieldFlags"
+        },
+        "maxLength": {
+          "type": "integer"
+        },
+        "alignment": {
+          "enum": [
+            "left",
+            "center",
+            "right",
+            "invalid"
+          ]
+        },
+        "font": {
+          "$ref": "#/$defs/font"
+        }
+      },
+      "required": [
+        "flags",
+        "alignment",
+        "font"
+      ]
+    },
+    "widget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "rectangle": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4
+        },
+        "geometryValid": {
+          "type": "boolean"
+        },
+        "effective": {
+          "$ref": "#/$defs/effective"
+        },
+        "annotationFlags": {
+          "type": "integer"
+        },
+        "rotation": {
+          "type": "integer"
+        },
+        "hasNormalAppearance": {
+          "type": "boolean"
+        },
+        "hasNormalOffAppearance": {
+          "type": "boolean"
+        },
+        "onStates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onStateCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linkage": {
+          "enum": [
+            "canonicalAndPage",
+            "canonicalWithoutPage",
+            "pageWithoutCanonicalField"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "rectangle",
+        "geometryValid",
+        "effective",
+        "annotationFlags",
+        "rotation",
+        "hasNormalAppearance",
+        "hasNormalOffAppearance",
+        "onStates",
+        "onStateCount",
+        "linkage"
+      ]
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "text",
+            "checkbox",
+            "radio",
+            "pushbutton",
+            "combo",
+            "list",
+            "signature",
+            "unknown"
+          ]
+        },
+        "effective": {
+          "$ref": "#/$defs/effective"
+        },
+        "widgets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/widget"
+          }
+        },
+        "allowedOnStates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onStateCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "descriptionSource": {
+          "enum": [
+            "tooltip",
+            "xfa",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "effective",
+        "widgets",
+        "allowedOnStates",
+        "onStateCount",
+        "descriptionSource"
+      ]
+    },
+    "xfa": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+        "kind": {
+          "enum": [
+            "none",
+            "staticHybridApproved",
+            "dynamic",
+            "unknown"
+          ]
+        },
+        "scriptCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "xmlParsed": {
+          "type": "boolean"
+        },
+        "dynamicRenderForbidden": {
+          "type": "boolean"
+        },
+        "knownScriptRemovalException": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "present",
+        "kind",
+        "xmlParsed",
+        "dynamicRenderForbidden",
+        "knownScriptRemovalException"
+      ]
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sigFlags": {
+          "type": "integer"
+        },
+        "approvalSignatureCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "certificationPresent": {
+          "type": "boolean"
+        },
+        "usageRightsSignatureCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approvedUsageRightsException": {
+          "type": "boolean"
+        },
+        "removableUsageRightsKeys": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "UR",
+              "UR3"
+            ]
+          },
+          "maxItems": 2
+        },
+        "unknownPermissionEntry": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "sigFlags",
+        "approvalSignatureCount",
+        "certificationPresent",
+        "usageRightsSignatureCount",
+        "approvedUsageRightsException",
+        "removableUsageRightsKeys",
+        "unknownPermissionEntry"
+      ]
+    },
+    "catalogAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "!ADBE::0100_VersChkStrings",
+            "!ADBE::0100_VersChkVars",
+            "!ADBE::0200_VersChkCode_XFACheck"
+          ]
+        },
+        "actionType": {
+          "const": "JavaScript"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "name",
+        "actionType",
+        "sha256"
+      ]
+    },
+    "catalogJavaScript": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approvedRemovalRequired": {
+          "type": "boolean"
+        },
+        "approvedActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/catalogAction"
+          },
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "count",
+        "approvedRemovalRequired",
+        "approvedActions"
+      ]
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "absent",
+            "structurally_supported",
+            "unsupported",
+            "approved_removal_only"
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reasonCode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "status",
+        "count",
+        "reasonCode"
+      ]
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "ruleId": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "stage",
+        "message",
+        "severity"
+      ]
+    }
+  }
+}

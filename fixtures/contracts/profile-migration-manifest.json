@@ -1,0 +1,16 @@
+[
+  {
+    "id": "irs-941",
+    "legacyFixtureSha256": "877679dd66d0c499b6862bd7cc2a4ece6195648623d361feffb8c0e790ae22f7",
+    "migratedProfileSha256": "9283800c7e179e2f29cf2015021faaf859f4bf87820feaaf0c3299de0b01dd54",
+    "keys": 68,
+    "targets": 116
+  },
+  {
+    "id": "irs-941sb",
+    "legacyFixtureSha256": "67b563209946e9bd27c8593453339f7f393460f87ec505290b8defea60dd4ba0",
+    "migratedProfileSha256": "e5503b46b8c54313875b5a97d4299962d6fe108e5d7f8a767c858c8606c2bcc7",
+    "keys": 101,
+    "targets": 212
+  }
+]

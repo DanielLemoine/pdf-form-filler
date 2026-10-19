@@ -1,0 +1,243 @@
+{
+  "schema": "pdfform-supplemental-golden-corresponding-source/1",
+  "scope": "Separate test overlay only. Main solution is unchanged and retains244Linux/310Windows selection. This overlay has254Linux/320Windows selection; only its separateLinux run was observed.",
+  "baseFilesBeforeApplying": [
+    {
+      "path": "src/PdfForm.Publication/CompletionProtocol.cs",
+      "bytes": 18391,
+      "sha256": "c03bc6255cd22f45151fc47959532480bb9c34f6ff89e87a6b03a1feb0ceb11f"
+    },
+    {
+      "path": "src/PdfForm.Publication/FileIdentity.cs",
+      "bytes": 7934,
+      "sha256": "285f738b9a4bf2f9f55c1670c2be95f51b1667ca3a41c5e9da08753e4ef0dd08"
+    },
+    {
+      "path": "src/PdfForm.Publication/OwnedStage.cs",
+      "bytes": 6809,
+      "sha256": "297b2d5f74b844248467d535f51604bb9e1dfc474ae9ae8ec643559f4de28c29"
+    },
+    {
+      "path": "src/PdfForm.Publication/PathSafety.cs",
+      "bytes": 7442,
+      "sha256": "e9b87ed9b9e2d92b5dcabafa810436c8664c32e5810d170e7c15308d7b4b6da7"
+    },
+    {
+      "path": "src/PdfForm.Publication/PublicationContracts.cs",
+      "bytes": 3033,
+      "sha256": "0afcbe09a257a3613f0bd00a918b0bb48fb847dff344f10d670895b7f3bccdd8"
+    },
+    {
+      "path": "src/PdfForm.Publication/SafePublisher.cs",
+      "bytes": 12234,
+      "sha256": "9b3f472e5e92a7e5a7ca06f03566ea9c584d8b9cdcc477c345ee2ae1748f63bb"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationCorrectionTests.cs",
+      "bytes": 36709,
+      "sha256": "5bb431e6983980e97c0c90555282ef41a4f8950d30f0ece6d9288a8dc60550c6"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationHarness.cs",
+      "bytes": 22727,
+      "sha256": "0c215d5b917372ee2749e5a2f8a9651d24860c6c6ce1673be8378c709d3f1dc8"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationHarnessTests.cs",
+      "bytes": 31869,
+      "sha256": "d1c753875afa770f1152a006b226afea6f071d2a67a1bb93e4d23e01aef8d4d2"
+    },
+    {
+      "path": "Directory.Build.props",
+      "bytes": 341,
+      "sha256": "b36dc6d8e0ad239f2469d952abc74cc5e1ccb9023721989abd75c940936b5446"
+    },
+    {
+      "path": "global.json",
+      "bytes": 55,
+      "sha256": "d1bb820bf074027be921b263729d1fba343d34328f0c4b7484d10162287c059e"
+    },
+    {
+      "path": "NuGet.Config",
+      "bytes": 179,
+      "sha256": "026760bf198d064aab475ee175033c6db3c732abb90672a652e5b36fe4fdefc7"
+    },
+    {
+      "path": "NuGet.Core.Config",
+      "bytes": 112,
+      "sha256": "7d59a339f0f6022f0710d690fe52e2a0f868519847651f6c10f6c9ff1bd7213a"
+    },
+    {
+      "path": "tools/dotnet-env.sh",
+      "bytes": 1065,
+      "sha256": "ef53c6b7f11787abf285232297341cbf21e5e78a0d7bf302ae9c77277372a642"
+    },
+    {
+      "path": "src/PdfForm.Publication/PdfForm.Publication.csproj",
+      "bytes": 36,
+      "sha256": "8d654c44b7bebb6b31a9f2f606927f45b5072193adc4eef8cce3f3cf3b278df3"
+    },
+    {
+      "path": "src/PdfForm.Publication/packages.lock.json",
+      "bytes": 61,
+      "sha256": "a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PdfForm.Publication.Tests.csproj",
+      "bytes": 213,
+      "sha256": "dae8a1b94ffd4337eeff86da5096c0294c30c969518ad1999fdbce87b146332a"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/packages.lock.json",
+      "bytes": 131,
+      "sha256": "ceb4c43b90981b8012404d2c9979cc25a5725b471fe38854dd153034214a45af"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/Program.cs",
+      "bytes": 32832,
+      "sha256": "6cf006a3ff3a534d03695dfdacba561c8b7e498954dddcb24383be79025c54ad"
+    }
+  ],
+  "sourceConfigLockInputsAfterApplying": [
+    {
+      "path": "src/PdfForm.Publication/CompletionProtocol.cs",
+      "bytes": 18391,
+      "sha256": "c03bc6255cd22f45151fc47959532480bb9c34f6ff89e87a6b03a1feb0ceb11f"
+    },
+    {
+      "path": "src/PdfForm.Publication/FileIdentity.cs",
+      "bytes": 7934,
+      "sha256": "285f738b9a4bf2f9f55c1670c2be95f51b1667ca3a41c5e9da08753e4ef0dd08"
+    },
+    {
+      "path": "src/PdfForm.Publication/OwnedStage.cs",
+      "bytes": 6809,
+      "sha256": "297b2d5f74b844248467d535f51604bb9e1dfc474ae9ae8ec643559f4de28c29"
+    },
+    {
+      "path": "src/PdfForm.Publication/PathSafety.cs",
+      "bytes": 7442,
+      "sha256": "e9b87ed9b9e2d92b5dcabafa810436c8664c32e5810d170e7c15308d7b4b6da7"
+    },
+    {
+      "path": "src/PdfForm.Publication/PublicationContracts.cs",
+      "bytes": 3033,
+      "sha256": "0afcbe09a257a3613f0bd00a918b0bb48fb847dff344f10d670895b7f3bccdd8"
+    },
+    {
+      "path": "src/PdfForm.Publication/SafePublisher.cs",
+      "bytes": 12234,
+      "sha256": "9b3f472e5e92a7e5a7ca06f03566ea9c584d8b9cdcc477c345ee2ae1748f63bb"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationCorrectionTests.cs",
+      "bytes": 36709,
+      "sha256": "5bb431e6983980e97c0c90555282ef41a4f8950d30f0ece6d9288a8dc60550c6"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationHarness.cs",
+      "bytes": 22727,
+      "sha256": "0c215d5b917372ee2749e5a2f8a9651d24860c6c6ce1673be8378c709d3f1dc8"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationHarnessTests.cs",
+      "bytes": 31869,
+      "sha256": "d1c753875afa770f1152a006b226afea6f071d2a67a1bb93e4d23e01aef8d4d2"
+    },
+    {
+      "path": "Directory.Build.props",
+      "bytes": 341,
+      "sha256": "b36dc6d8e0ad239f2469d952abc74cc5e1ccb9023721989abd75c940936b5446"
+    },
+    {
+      "path": "global.json",
+      "bytes": 55,
+      "sha256": "d1bb820bf074027be921b263729d1fba343d34328f0c4b7484d10162287c059e"
+    },
+    {
+      "path": "NuGet.Config",
+      "bytes": 179,
+      "sha256": "026760bf198d064aab475ee175033c6db3c732abb90672a652e5b36fe4fdefc7"
+    },
+    {
+      "path": "NuGet.Core.Config",
+      "bytes": 112,
+      "sha256": "7d59a339f0f6022f0710d690fe52e2a0f868519847651f6c10f6c9ff1bd7213a"
+    },
+    {
+      "path": "tools/dotnet-env.sh",
+      "bytes": 1065,
+      "sha256": "ef53c6b7f11787abf285232297341cbf21e5e78a0d7bf302ae9c77277372a642"
+    },
+    {
+      "path": "src/PdfForm.Publication/PdfForm.Publication.csproj",
+      "bytes": 36,
+      "sha256": "8d654c44b7bebb6b31a9f2f606927f45b5072193adc4eef8cce3f3cf3b278df3"
+    },
+    {
+      "path": "src/PdfForm.Publication/packages.lock.json",
+      "bytes": 61,
+      "sha256": "a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PdfForm.Publication.Tests.csproj",
+      "bytes": 213,
+      "sha256": "dae8a1b94ffd4337eeff86da5096c0294c30c969518ad1999fdbce87b146332a"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/packages.lock.json",
+      "bytes": 131,
+      "sha256": "ceb4c43b90981b8012404d2c9979cc25a5725b471fe38854dd153034214a45af"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/Program.cs",
+      "bytes": 32879,
+      "sha256": "936f1602f4d2b94a50b22e3ac184132fa9a5133a61863f60633de524206181cc"
+    },
+    {
+      "path": "tests/PdfForm.Publication.Tests/PublicationGoldenRecoveryTests.cs",
+      "bytes": 12943,
+      "sha256": "b37c2612bf9ce4e0eb1d1cdd5c87c8fddbdbac80d8f9853edc2dc93504c0e0c1"
+    }
+  ],
+  "overlayFiles": [
+    {
+      "path": "source/tests/PdfForm.Publication.Tests/Program.cs",
+      "bytes": 32879,
+      "sha256": "936f1602f4d2b94a50b22e3ac184132fa9a5133a61863f60633de524206181cc"
+    },
+    {
+      "path": "source/tests/PdfForm.Publication.Tests/PublicationGoldenRecoveryTests.cs",
+      "bytes": 12943,
+      "sha256": "b37c2612bf9ce4e0eb1d1cdd5c87c8fddbdbac80d8f9853edc2dc93504c0e0c1"
+    }
+  ],
+  "syntheticFixtures": [
+    {
+      "path": "frozen-fixtures/completion.json",
+      "bytes": 473,
+      "sha256": "6f881ad6c41f4c6b024b78fca550d6738535728c6168309bbc457bfcf430ef0e"
+    },
+    {
+      "path": "frozen-fixtures/expected.json",
+      "bytes": 1241,
+      "sha256": "64ab89d8f61f7df9f66a166f35d0112b180dd858a0b7178f621fd19e74552d57"
+    },
+    {
+      "path": "frozen-fixtures/payloads.json",
+      "bytes": 387,
+      "sha256": "5daab00f9bdaa702f814b9ab853d5961c53e5d5fc68930f7bec384be2ccb341b"
+    },
+    {
+      "path": "frozen-fixtures/result.json",
+      "bytes": 1199,
+      "sha256": "ef20ab2556c11c3d7126be5c418b120a318e77a00cda7c04740f90ef643ed89e"
+    }
+  ],
+  "linuxObservedCases": 254,
+  "linuxSelectionSha256": "8f57e63a1a1150f74f255bc4d612b9dd67c8043907fbf9e334b7152ef430f47b",
+  "windowsProspectiveCases": 320,
+  "windowsSelectionSha256": "2af06babd2ba9cd2af6662c9e661f16137dd9016bf5153cf0ebf054e60137cb4",
+  "rawGeneratedRestoreMetadataIncluded": false,
+  "binaryReproducibility": "Source correspondence is provided. Byte-identical reproduction of the earlier relocated binary is not claimed; build paths affect debug identities."
+}
