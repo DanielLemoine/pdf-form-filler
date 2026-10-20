@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:data:3",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "pdfform.data/3"
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 0,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}@[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "values": {
+      "type": "object",
+      "maxProperties": 10000,
+      "additionalProperties": {
+        "type": [
+          "string",
+          "boolean"
+        ],
+        "maxLength": 256
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/metadataValue"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "profile",
+    "values"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "metadataValue": {
+      "type": [
+        "object",
+        "array",
+        "string",
+        "number",
+        "boolean"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/metadataValue"
+      },
+      "items": {
+        "$ref": "#/$defs/metadataValue"
+      }
+    }
+  }
+}

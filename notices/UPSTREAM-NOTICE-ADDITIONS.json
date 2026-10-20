@@ -1,0 +1,16 @@
+[
+  {
+    "path": "notices/microsoft.extensions.dependencymodel/10.0.2/LICENSE.dotnet-4452502.TXT",
+    "bytes": 1115,
+    "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+    "gitBlob": "a616ed188dfce68ee308f674350ad242d8588c2b",
+    "sourceUrl": "https://github.com/dotnet/dotnet/blob/44525024595742ebe09023abe709df51de65009b/LICENSE.TXT"
+  },
+  {
+    "path": "notices/microsoft.dotnet.platformabstractions/1.1.0/THIRD-PARTY-NOTICES.core-setup-v1.1.0.txt",
+    "bytes": 1930,
+    "sha256": "e6e6d2742becc73a31d4283a32a10b1babccb1db167eb17207cc133f998aa87a",
+    "gitBlob": "962904c6636934834ad9c8602a6fae85ef11c1cb",
+    "sourceUrl": "https://github.com/dotnet/core-setup/blob/928f77c4bc3f49d892459992fb6e1d5542cb5e86/THIRD-PARTY-NOTICES"
+  }
+]

@@ -1,0 +1,55 @@
+# Development status
+
+## Embedded-font checkpoint
+
+The embedded-font development cut built with zero warnings/errors using .NET SDK 10.0.402. Linux observations were Core 142, inspector 147, renderer 149, CLI 45 and nine exact migration comparisons. All six build/test phases exited successfully and their owned processes settled. The active publication harness retains its separate 244-case Linux result because all seven runtime files matched its prior passing closure. The supplemental golden publication tests remain a separate 254-case result.
+
+The CLI regressions use the unchanged stock Schedule B sample in editable and flattened modes, checking output descriptors, privacy and identical-argument no-overwrite preservation. These checks are separate from the selected visual specimens. This curated source layout still needs its own clean-room restore/build.
+
+## Selected visual correction accepted
+
+The prior native, unembedded Schedule B font produced visibly uneven spacing and overlapping letters in Poppler. Two apostrophe-window checks also failed. Those results remain historical failures; they are not reclassified as passes.
+
+The correction embeds the exact bundled Liberation Serif Regular font and replaces the generated Schedule B text defaults and appearances consistently. Printable ASCII (U+0020–U+007E) plus É remains the supported repertoire at fixed 10 pt. Unsupported Unicode or text that does not fit is rejected. The diagnostic is `W_FONT_EXPLICIT_REPLACEMENT`; there is no silent workstation-font search or automatic fallback.
+
+The corrected cut passed a bounded 288-dpi review of 12 PDFs and 28 rendered pages in Poppler 26.05.0 and MuPDF 1.26.11. All 2,388 recorded structural/pixel/preservation checks passed. Independent reviewers viewed all four contact sheets and accepted ordinary-name spacing, admitted glyphs, and the selected Form 941 overview/date/checkbox details. The unchanged apostrophe search windows now contain visible ink in both editable and flattened outputs.
+
+This supports the selected synthetic specimens and fixed font in those two renderer versions. It does not establish Windows/Adobe behavior, arbitrary-viewer equivalence, viewer editing/reset, physical printing or filing readiness. Exact bitmap equality between renderers is not claimed.
+
+## Generic catalog integration: synthetic Linux checkpoint accepted
+
+This draft contains the reviewed Core catalog contracts, PDF discovery/binding/rendering policies, CLI authoring and catalog commands, and create-new configuration publication. The two built-in identities remain unchanged. A third form's identity is present only in test-side fixture source, never in the production registry.
+
+The corrected renderer follows the canonical raw field/widget ownership tree instead of a flattened library field map or wrapper terminality. It preserves inherited field types and unnamed widgets with local appearance/type entries, validates exact wrapper identities, and refuses repeated, missing, mixed or excessive nodes. Added controls compare literal expected names with independent inspector and assignment inventories. Existing assignment, font, appearance and publication guards remain in force. The publication fixture also explicitly distinguishes absent nullable template memory from a supplied template.
+
+Accepted results, independently reconciled on 20 October 2026, are Core 202, inspector 551, renderer 149, CLI 91, Linux publication 313 and nine migration comparisons. Coverage combines three distinct settled runs: a fresh affected-product/inspector build and inspector 551; a fresh broader build with Core 202, renderer 149 and CLI 91; and a focused fresh publication-test build with publication 313 and migration nine. Product source is identical across these accepted runs. The last run changes only the nullable-memory test helper and reuses the accepted product dependencies. This is combined coverage, not one monolithic execution or a clean-room build of this curated layout.
+
+Earlier interrupted runs, the configured-font assignment failure, and the later publication harness setup/fixture failures remain retained failures. The successful corrections do not reclassify those attempts. The 379-case Windows publication selection remains prospective.
+
+## Same-engine synthetic third-form milestone accepted
+
+On 20 October 2026, a separate fictional workshop request passed the actual Linux workflow: generate the blank twice, check, configure, independently review the emitted draft and a separate edited copy, save-config, check the saved configuration, generate sample input, validate, and fill both editable and flattened outputs. The two blanks were byte-identical. No third-form identity was added to production and no engine source or binary changed during onboarding.
+
+The complete 269-file production/fixture/runtime closure was frozen before introducing the blank and preserved throughout. All product, C# test, project and bundled-font inputs match product-source commit `7f1b19fd1526019d4589b0ea605e7eac83f21ad9`; 136 tested inputs match the public tree. Private admission documentation, updated documentation and curated test-wrapper packaging differ. This is not a clean-room build of the published layout. Existing compiled receipts correctly retain their development-local/unpublished-source labels; a documentation-only successor does not change that identity.
+
+The reviewed profile supplies names, labels, two required flags and explicitly fictional sample hints. The template, geometry, capacities, checkbox mapping and observed font policies remain fixed. A date-looking reference value stays ordinary single-line text; no date semantics were inferred.
+
+Independent inspection verified four canonical editable fields/widgets with exact current values, original blank reset defaults and four normal appearances. Flattened output has zero fields/widgets and contains all three expected text values. The blank and both filled one-page PDFs were rendered at 144 dpi in Poppler and independently viewed: values fit their boxes, the checkbox cross is clear, and labels/disclaimers are intact. Editable and flattened rasters are byte-identical. These are selected synthetic Linux observations, not universal viewer acceptance. Final pair inspection does not independently rehash the editable embedded-font program; font policy and original program identity come from the accepted blank/configuration checks.
+
+Clean-room restore/build of the curated source, current Windows/native qualification, interactive viewer editing/save/reopen/reset, physical printing, supported binary packaging and filing readiness remain open. The 379-case Windows publication selection is still prospective. Earlier Windows focused corrections do not turn their separate incomplete full-gate results into passes. The earlier embedded-font two-form evidence remains specific to its original cut. See the [work-PC handoff](WORK-PC-ACCEPTANCE.md) for the remaining checks and dependencies.
+
+## Path-normalized Linux candidate accepted
+
+A separate development handoff was built from documentation commit `dfc3c1f03eff0a7896e72ce70563846fe0690847`, whose product code is unchanged from `7f1b19fd1526019d4589b0ea605e7eac83f21ad9`. The only new compiler property was `PathMap`; four project DLLs now use the virtual source root `/_/pdf-form-filler`. The 25 third-party DLLs and pinned dependency versions stayed unchanged.
+
+Eight staged CLI calls and six raster calls passed, including third-form editable/flattened structure and selected third-form/stock raster parity. Exact archive inspection accepted 93 regular files and 6,667,809 compressed bytes. Two exact upstream notice additions are now retained in the source tree. See the [candidate record](PATHMAP-CANDIDATE.md) for source, runtime, recipe, archive identity and Schedule B input qualification.
+
+The first build wrapper stopped on metadata assumptions after its two SDK commands succeeded; that wrapper failure remains a failure. Reviewed reconciliation reused the captured build, and a separate no-rebuild continuation completed the targeted checks. This candidate is a new binary identity with targeted Linux evidence. Historical full-regression results remain bound to the original binaries. There is no independent byte-for-byte reproducible rebuild, fresh-online/clean-machine restore, Windows-native, interactive viewer/reset, physical-print or release claim.
+
+## Scope boundaries
+
+The legacy profile path admits its exact reviewed template/profile pairs. The new catalog path requires a reviewed exact-byte package and independently observed supported PDF structure. Neither path permits hash mismatch overrides, unsupported-feature enrollment, force replacement or complete job/packet publication. Data-level packet consistency APIs do not imply the disabled `run` command is implemented. Filing readiness stays `not_assessed`.
+
+Create-new checks preserve known existing destinations. Detected identity substitutions and unknown stage entries cause refusal at the corresponding checks. Stronger post-check hostile namespace races, interruption/recovery qualification and platform-specific durability remain outside the accepted boundary. A committed PDF can remain after diagnostic-output failure; preserve and inspect the requested destination rather than assume rollback.
+
+Project-authored source uses AGPLv3. Dependencies, blank templates and the bundled font retain their own notices and terms. Source licensing, correctness, Windows qualification and readiness to distribute a supported binary product are separate decisions.

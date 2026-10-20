@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>itext.commons</id>
+    <version>9.8.0</version>
+    <title>iText commons module</title>
+    <authors>Apryse Software</authors>
+    <owners>Apryse Software</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>https://www.gnu.org/licenses/agpl.html</licenseUrl>
+    <icon>ITSC-avatar.png</icon>
+    <projectUrl>https://itextpdf.com/</projectUrl>
+    <description>Commons module</description>
+    <summary></summary>
+    <releaseNotes>https://itextpdf.com/itext7release</releaseNotes>
+    <copyright>Copyright (c) 1998-2026 Apryse Group NV</copyright>
+    <language>en-US</language>
+    <tags>itext itext7 itextsharp c# .net csharp</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.1">
+        <dependency id="Newtonsoft.Json" version="13.0.1" />
+        <dependency id="Microsoft.Extensions.Logging" version="5.0.0" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Text.Encoding.CodePages" version="4.3.0" />
+        <dependency id="System.Text.Json" version="10.0.2" />
+        <dependency id="Microsoft.Extensions.Logging" version="5.0.0" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

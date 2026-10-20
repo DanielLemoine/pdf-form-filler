@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:data:2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "pdfform.data/2"
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 0,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}@[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "taxYear": {
+          "type": "string",
+          "minLength": 0,
+          "pattern": "^[0-9]{4}$"
+        },
+        "quarter": {
+          "enum": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        "liabilityReporting": {
+          "enum": [
+            "none",
+            "monthly",
+            "semiweekly"
+          ]
+        }
+      },
+      "required": [
+        "taxYear",
+        "quarter",
+        "liabilityReporting"
+      ],
+      "additionalProperties": false
+    },
+    "values": {
+      "type": "object",
+      "maxProperties": 10000,
+      "additionalProperties": {
+        "type": [
+          "string",
+          "boolean"
+        ],
+        "maxLength": 256
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/metadataValue"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "profile",
+    "context",
+    "values"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "metadataValue": {
+      "type": [
+        "object",
+        "array",
+        "string",
+        "number",
+        "boolean"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/metadataValue"
+      },
+      "items": {
+        "$ref": "#/$defs/metadataValue"
+      }
+    }
+  }
+}

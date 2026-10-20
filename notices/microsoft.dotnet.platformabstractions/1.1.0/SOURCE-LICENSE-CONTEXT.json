@@ -1,0 +1,28 @@
+{
+  "schema": "pdfform-dependency-source-license-reference/1",
+  "package": "Microsoft.DotNet.PlatformAbstractions",
+  "packageVersion": "1.1.0",
+  "sourceCommit": "928f77c4bc3f49d892459992fb6e1d5542cb5e86",
+  "sourceLicense": "MIT",
+  "sourceCopyright": "Copyright (c)2015 .NET Foundation",
+  "files": [
+    {
+      "url": "https://raw.githubusercontent.com/dotnet/core-setup/928f77c4bc3f49d892459992fb6e1d5542cb5e86/LICENSE",
+      "path": "LICENSE.core-setup-v1.1.0.txt",
+      "bytes": 1083,
+      "sha256": "9d32889a96a7106bb5da8e8395531fc2889c5c20c00f8442d884ad8f2c04998c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/dotnet/core-setup/928f77c4bc3f49d892459992fb6e1d5542cb5e86/src/Microsoft.DotNet.PlatformAbstractions/project.json",
+      "path": "project.core-setup-v1.1.0.json",
+      "bytes": 841,
+      "sha256": "1ac38b4279cf827229a32b6f895df6a02425c899f87a8eb3f2e6a30d1e727008"
+    }
+  ],
+  "scope": "Official pinned core-setup source LICENSE and component project version/framework corroboration. No byte-for-byte build provenance or legal clearance is claimed for the packaged DLL. Repository-wide THIRD-PARTY-NOTICES applicability to this managed DLL remains unresolved. No unrelated Microsoft.Extensions/Apache result used. Existing source/candidate notices have not been overwritten.",
+  "binaryIdentity": {
+    "package": "Microsoft.DotNet.PlatformAbstractions",
+    "version": "1.1.0",
+    "dllSha256": "37ee80029f7ab134202cd6291e995d904dabe639ccf1ff2fa95076d7f878ced7"
+  }
+}

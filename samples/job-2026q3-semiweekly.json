@@ -1,0 +1,40 @@
+{
+  "schema": "pdfform.job/2",
+  "requestId": "synthetic-2026q3-001",
+  "policy": "irs-941-packet/1",
+  "documents": [
+    {
+      "alias": "941",
+      "pdf": "../fixtures/appearance/forms/f941.pdf",
+      "profile": "../profiles/irs-941-2026-03.json",
+      "data": "941-2026q3-semiweekly.json",
+      "output": "941.pdf"
+    },
+    {
+      "alias": "941sb",
+      "pdf": "../fixtures/appearance/forms/f941sb.pdf",
+      "profile": "../profiles/irs-941sb-2024-03.json",
+      "data": "941sb-2026q3.json",
+      "output": "941sb.pdf"
+    }
+  ],
+  "flatten": true,
+  "packet": {
+    "output": "return-packet.pdf",
+    "pages": [
+      {
+        "document": "941",
+        "pages": [
+          1,
+          2
+        ]
+      },
+      {
+        "document": "941sb",
+        "pages": [
+          1
+        ]
+      }
+    ]
+  }
+}
