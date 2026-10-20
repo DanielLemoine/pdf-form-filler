@@ -84,7 +84,8 @@ foreach (bool flatten in new[] { false, true }) Test("fill stock Schedule B outp
         result["validationLevels"]!["packet"]!.ToString() == "not_run");
     Assert(result["errors"]!.AsArray().Count == 0);
     string[] warningCodes = result["warnings"]!.AsArray().Select(item => item!["code"]!.ToString()).ToArray();
-    Assert(warningCodes.Contains("W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED", StringComparer.Ordinal) &&
+    Assert(warningCodes.Contains("W_FONT_EXPLICIT_REPLACEMENT", StringComparer.Ordinal) &&
+        !warningCodes.Contains("W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED", StringComparer.Ordinal) &&
         warningCodes.Contains("W_ACCEPTANCE_NOT_COMPLETE", StringComparer.Ordinal));
     Assert(result["outputs"]!.AsArray().Count == 1);
     var artifact = result["outputs"]![0]!;

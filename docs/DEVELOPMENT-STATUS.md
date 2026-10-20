@@ -1,27 +1,29 @@
 # Development status
 
-## Observed code checkpoint
+## Embedded-font checkpoint
 
-The 2026-10-19 combined code snapshot built with zero warnings/errors using SDK 10.0.402. Linux observations were Core 142, inspector 147, renderer 136, CLI 45 and nine exact migration comparisons. The unchanged active publication harness has 244 passing Linux cases; its seven rebuilt runtime files matched its prior passing closure exactly. The two added CLI regressions use the unchanged stock Schedule B sample in editable and flattened modes and independently check output descriptors, privacy and identical-argument no-overwrite preservation.
+The embedded-font development cut built with zero warnings/errors using .NET SDK 10.0.402. Linux observations were Core 142, inspector 147, renderer 149, CLI 45 and nine exact migration comparisons. All six build/test phases exited successfully and their owned processes settled. The active publication harness retains its separate 244-case Linux result because all seven runtime files matched its prior passing closure. The supplemental golden publication tests remain a separate 254-case result.
 
-These are structural, semantic and serialization checks. They do not establish correct PDF appearance in every viewer. This curated source layout has not had a separate clean-room restore/build. Earlier failures remain failures and are not included as passing evidence.
+The CLI regressions use the unchanged stock Schedule B sample in editable and flattened modes, checking output descriptors, privacy and identical-argument no-overwrite preservation. These checks are separate from the selected visual specimens. This curated source layout still needs its own clean-room restore/build.
 
-## Current blocking visual defect
+## Selected visual correction accepted
 
-An independent 288-dpi Poppler/MuPDF check of ordinary multi-character Schedule B name fields found visible uneven spacing and overlapping letters in Poppler; MuPDF displayed those lines cleanly. The public repertoire fixture also failed two Poppler character-window checks for an ASCII apostrophe, one editable and one flattened. A zero-window result alone does not prove a missing glyph, but the independent visual review did not accept the multi-character layout. Readable one-glyph-per-field specimens were insufficient evidence for real names.
+The prior native, unembedded Schedule B font produced visibly uneven spacing and overlapping letters in Poppler. Two apostrophe-window checks also failed. Those results remain historical failures; they are not reclassified as passes.
 
-The current source uses an unembedded native Schedule B font and emits `W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED`. An embedding correction is being developed separately. It is not in this snapshot and requires fresh source review, runtime regression and independent visual acceptance before a readiness claim. No installed workstation font is silently searched, copied or exported.
+The correction embeds the exact bundled Liberation Serif Regular font and replaces the generated Schedule B text defaults and appearances consistently. Printable ASCII (U+0020–U+007E) plus É remains the supported repertoire at fixed 10 pt. Unsupported Unicode or text that does not fit is rejected. The diagnostic is `W_FONT_EXPLICIT_REPLACEMENT`; there is no silent workstation-font search or automatic fallback.
 
-Form 941 has a separate bounded visual checkpoint, but that is not universal viewer, editing/reset, physical-print or filing acceptance. Editable and flattened output may differ at antialiased edges; exact bitmap equality is not claimed.
+The corrected cut passed a bounded 288-dpi review of 12 PDFs and 28 rendered pages in Poppler 26.05.0 and MuPDF 1.26.11. All 2,388 recorded structural/pixel/preservation checks passed. Independent reviewers viewed all four contact sheets and accepted ordinary-name spacing, admitted glyphs, and the selected Form 941 overview/date/checkbox details. The unchanged apostrophe search windows now contain visible ink in both editable and flattened outputs.
+
+This supports the selected synthetic specimens and fixed font in those two renderer versions. It does not establish Windows/Adobe behavior, arbitrary-viewer equivalence, viewer editing/reset, physical printing or filing readiness. Exact bitmap equality between renderers is not claimed.
 
 ## Configuration-only form onboarding is pending
 
-The mapping architecture is profile-driven, but the current production profile registry and approved template admission contain compiled two-form entries. A new form cannot yet be added only by configuration. An external exact-hash catalog design is being reviewed so supported form packages can be added without rebuilding the engine while preserving admission checks and resource limits. That correction is not present in this snapshot.
+Mappings and validation rules are profile-driven, but the integrated two-form engine still uses compiled trusted registration and form-specific presentation policies. Core catalog work and consumer integration are being tested separately. A new supported form cannot yet be claimed addable solely by configuration without rebuilding the engine. No such claim follows from the embedded-font or Core-only results.
 
 ## Scope boundaries
 
 Only the exact reviewed template/profile byte pairs are admitted for filling. Runtime trust enrollment, mismatch bypass, arbitrary templates, force replacement and complete job/packet publication are unavailable. Data-level packet consistency APIs do not imply the disabled `run` command is implemented. Filing readiness stays `not_assessed`.
 
-Create-new checks preserve known existing destinations. Detected identity substitutions and unknown stage entries cause refusal at the corresponding checks. Stronger post-check hostile namespace races, interruption/recovery qualification and platform-specific durability remain outside the accepted boundary.
+Create-new checks preserve known existing destinations. Detected identity substitutions and unknown stage entries cause refusal at the corresponding checks. Stronger post-check hostile namespace races, interruption/recovery qualification and platform-specific durability remain outside the accepted boundary. A committed PDF can remain after diagnostic-output failure; preserve and inspect the requested destination rather than assume rollback.
 
-The source license has been selected as AGPLv3. Dependency notices and template/source provenance are included, but that decision is separate from code correctness, Windows execution, supported-host qualification and readiness to distribute a supported binary product.
+Project-authored source uses AGPLv3. Dependencies, blank templates and the bundled font retain their own notices and terms. Source licensing, correctness, Windows qualification and readiness to distribute a supported binary product are separate decisions.

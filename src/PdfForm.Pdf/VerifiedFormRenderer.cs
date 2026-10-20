@@ -42,6 +42,7 @@ internal static class VerifiedFormRenderer
                     "E_FILL_ASSIGNMENTS", "The assignment manifest and canonical field inventory disagree.");
                 var expected = new Dictionary<string, TargetWitness>(StringComparer.Ordinal);
                 var fonts = new Dictionary<string, PdfFont>(StringComparer.Ordinal);
+                var replacement = new ScheduleBEmbeddedFont.DocumentFont(pdf);
                 foreach (var assignment in assignments)
                 {
                     var original = bound.Inspection.NamedFields[assignment.Field];
@@ -75,7 +76,7 @@ internal static class VerifiedFormRenderer
                     }
                     else
                     {
-                        var font = NativeTextAppearance.ResolveFont(template.Sha256, pdf, field, widget.Effective.Font, out fontWitness);
+                        var font = NativeTextAppearance.ResolveFont(template.Sha256, pdf, field, widget.Effective.Font, out fontWitness, replacement);
                         fonts.Add(assignment.Field, font);
                         NativeTextAppearance.CheckFit(field, widget, assignment.Text, font, fontWitness);
                         var key = profile.Keys.Single(k => k.Key == assignment.Key);
@@ -126,6 +127,8 @@ internal static class VerifiedFormRenderer
             {
                 CheckTargetForReplacement(field, target, fonts[pair.Key]);
                 field.SetValue(target.Assignment.Text, fonts[pair.Key], NativeTextAppearance.FontSize);
+                if (target.Font!.Policy == ScheduleBEmbeddedFont.Policy)
+                    ScheduleBEmbeddedFont.SetDefaults(pdf, field, fonts[pair.Key]);
                 ClearResetData(field, false);
                 if (target.Assignment.Text.Length == 0) NativeTextAppearance.SetEmptyAppearance(pdf, field);
                 else if (target.DateCells is not null)
@@ -177,7 +180,12 @@ internal static class VerifiedFormRenderer
                 Require(!widget.ContainsKey(PdfName.AS), "E_VERIFY_TEXT_STATE", "A text widget retains an unsupported appearance state.");
                 var ap = widget.GetAsDictionary(PdfName.AP)?.GetAsStream(PdfName.N);
                 Require(ap is not null, "E_VERIFY_TEXT_AP", "A text target has no normal appearance stream.");
-                try { NativeTextAppearance.Verify(ap!, target, fontVerification); }
+                try
+                {
+                    if (target.Font!.Policy == ScheduleBEmbeddedFont.Policy)
+                        ScheduleBEmbeddedFont.VerifyDefaults(pdf, field, target.Font, fontVerification);
+                    NativeTextAppearance.Verify(ap!, target, fontVerification);
+                }
                 catch (VerifiedFillException ex) { ex.ApprovedField ??= target.Assignment.Field; throw; }
             }
             Require(!field.GetPdfObject().ContainsKey(PdfName.RV) && !widget.ContainsKey(PdfName.RV),

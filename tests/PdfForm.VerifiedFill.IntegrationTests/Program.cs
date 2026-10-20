@@ -40,6 +40,20 @@ void Reject(byte[] bytes, RenderManifest manifest, string name, bool flat = fals
     catch (VerifiedFillException) { rejected = true; }
     Check(rejected, name);
 }
+void RejectCode(byte[] bytes, RenderManifest manifest, string name, string expected)
+{
+    string? code = null;
+    try { VerifiedFormRenderer.VerifyEditable(bytes, manifest); }
+    catch (VerifiedFillException ex) { code = ex.Code; }
+    if (code != expected)
+    {
+        Save("failure-" + name + ".pdf", bytes);
+        string observed = code is null ? "NO_REJECTION"
+            : Regex.IsMatch(code, @"\AE_[A-Z0-9_]{1,63}\z", RegexOptions.CultureInvariant) ? code : "UNEXPECTED_CODE";
+        throw new TestFailure(name, expected, observed);
+    }
+    Check(true, name);
+}
 byte[] Json(JsonObject node) => Encoding.UTF8.GetBytes(node.ToJsonString());
 JsonObject Data(string file) => JsonNode.Parse(File.ReadAllBytes(Path.Combine(root, "samples", file)))!.AsObject();
 void Save(string name, byte[] bytes)
@@ -65,18 +79,32 @@ Dictionary<string, PdfFont> FixtureFonts(PdfDocument pdf, RenderManifest manifes
     var fields = Fields(pdf); var result = new Dictionary<string, PdfFont>(StringComparer.Ordinal);
     var cache = new Dictionary<PdfDictionary, PdfFont>(ReferenceEqualityComparer.Instance);
     var acro = PdfAcroForm.GetAcroForm(pdf, false).GetPdfObject();
+    var verification = new NativeTextAppearance.VerificationContext();
     foreach (var pair in manifest.Targets.Where(x => x.Value.Assignment.Kind == "text"))
     {
         var target = pair.Value; var field = fields[pair.Key]; var inspected = target.Widget.Effective.Font;
-        if (inspected.Name != target.Font!.Name || inspected.Size != NativeTextAppearance.FontSize)
-            throw new TestFailure("fixture-font-inspection-identity");
-        var resources = VerifiedFormRenderer.Inherited(field.GetPdfObject(), PdfName.DR, acro) as PdfDictionary;
-        var dictionary = resources?.GetAsDictionary(PdfName.Font)?.GetAsDictionary(new PdfName(inspected.Name!))
-            ?? throw new TestFailure("fixture-native-font-resource-missing");
+        PdfDictionary dictionary;
+        if (target.Font!.Policy == ScheduleBEmbeddedFont.Policy)
+        {
+            // The inspected source font remains TimesLTStd-Roman. Resolve the separately witnessed output.
+            if (manifest.TemplateSha256 != ApprovedTemplates.ScheduleBSha256 || inspected.Name != "TimesLTStd-Roman")
+                throw new TestFailure("fixture-source-font-identity");
+            dictionary = ScheduleBEmbeddedFont.VerifyDefaults(pdf, field, target.Font, verification);
+        }
+        else
+        {
+            if (inspected.Name != target.Font.Name || inspected.Size != NativeTextAppearance.FontSize)
+                throw new TestFailure("fixture-font-inspection-identity");
+            var resources = VerifiedFormRenderer.Inherited(field.GetPdfObject(), PdfName.DR, acro) as PdfDictionary;
+            dictionary = resources?.GetAsDictionary(PdfName.Font)?.GetAsDictionary(new PdfName(inspected.Name!))
+                ?? throw new TestFailure("fixture-native-font-resource-missing");
+        }
         if (!cache.TryGetValue(dictionary, out var font))
         {
             if (cache.Count >= 32) throw new TestFailure("fixture-font-resource-limit");
-            font = NativeTextAppearance.ResolveFont(manifest.TemplateSha256, pdf, field, inspected, out _);
+            if (target.Font.Policy == ScheduleBEmbeddedFont.Policy) font = PdfFontFactory.CreateFont(dictionary);
+            else font = NativeTextAppearance.ResolveFont(manifest.TemplateSha256, pdf, field, inspected, out _);
+            NativeTextAppearance.VerifyFont(font, target.Font, verification);
             cache.Add(dictionary, font);
         }
         result.Add(pair.Key, font);
@@ -108,8 +136,9 @@ try
     Good(readyB, "schedule-b-editable");
     var readyBFlat = VerifiedFillPipeline.Prepare(templateB, admittedB.Value!, Json(inputB), true);
     Good(readyBFlat, "schedule-b-flattened");
-    Check(new[] { readyB, readyBFlat }.All(r => r.Findings.Any(f => f.Code == "W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED" && f.Severity == "warning")), "ordinary-name-both-modes-private-unembedded-warning-required");
-    Check(!ready941.Findings.Any(f => f.Code == "W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED"), "embedded941-no-text-portability-exception");
+    Check(new[] { readyB, readyBFlat }.All(r => r.Findings.Any(f => f.Code == "W_FONT_EXPLICIT_REPLACEMENT" && f.Severity == "warning")
+        && !r.Findings.Any(f => f.Code == "W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED")), "ordinary-name-both-modes-explicit-embedded-policy-warning");
+    Check(!ready941.Findings.Any(f => f.Code is "W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED" or "W_FONT_EXPLICIT_REPLACEMENT"), "embedded941-no-text-portability-exception");
     Check(!ready941.Findings.Any(f => f.Code == "W_CHECKBOX_FONT_PORTABILITY_UNQUALIFIED")
         && !readyB.Findings.Any(f => f.Code == "W_CHECKBOX_FONT_PORTABILITY_UNQUALIFIED"), "both-forms-use-resource-free-vector-checkboxes");
     Check(ready941.Stats["targetsVerified"] == 116 && readyB.Stats["targetsVerified"] == 212, "328-targets-verified");
@@ -139,7 +168,8 @@ try
             string id = $"schedule-b.name-repertoire-{chunk + 1:D2}." + (flatten ? "flattened" : "editable");
             var prepared = VerifiedFillPipeline.Prepare(templateB, admittedB.Value!, Json(data), flatten);
             Good(prepared, id);
-            Check(prepared.Findings.Any(f => f.Code == "W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED" && f.Severity == "warning"), id + "-portability-warning");
+            Check(prepared.Findings.Any(f => f.Code == "W_FONT_EXPLICIT_REPLACEMENT" && f.Severity == "warning")
+                && !prepared.Findings.Any(f => f.Code == "W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED"), id + "-explicit-embedded-policy-warning");
             var published = VerifiedFillPipeline.PublishCreateNew(prepared, Path.Combine(output, id + ".pdf"), []);
             Check(published.Success && published.ArtifactState == "published", id + "-verified-create-new-publication");
         }
@@ -149,7 +179,7 @@ try
     {
         schema = "pdfform.synthetic-public-name-repertoire/1", templateSha256 = templateB.Sha256,
         field = nameTarget.Assignment.Field, page = nameTarget.Widget.Page, rect = nameTarget.Widget.Rectangle,
-        repertoire = "U+0020-U+007E plus U+00C9", font = "TimesLTStd-Roman", fontSizePt = 10,
+        repertoire = "U+0020-U+007E plus U+00C9", font = ScheduleBEmbeddedFont.Name, fontSizePt = 10, embeddedProgramSha256 = ScheduleBEmbeddedFont.ProgramSha256, policy = ScheduleBEmbeddedFont.Policy,
         provenance = "Public Prepare and verified create-new publication, each in editable and flattened modes.",
         ordinaryName = inputB["values"]!["name"]!.GetValue<string>(),
         chunks = nameChunks.Select((text, i) => new { id = $"schedule-b.name-repertoire-{i + 1:D2}", text })
@@ -200,6 +230,107 @@ try
             if (verification.EmbeddedDigest(fontStream) != hash) throw new TestFailure("font-identity-cache-mismatch");
         Check(true, "read-only-font-resource-decoded-once-with-unchanged-memory-caps");
     }
+    stage = "schedule-b-embedded-defaults-and-tampering";
+    var bytesB = readyB.Candidate!.CopyForFixture(); var manifestB = readyB.Candidate.ManifestForFixture;
+    string populatedB = manifestB.Targets.Single(t => t.Value.Assignment.Key == "name").Key;
+    string blankB = manifestB.Targets.First(t => t.Value.Assignment.Kind == "text" && t.Value.Assignment.Text.Length == 0).Key;
+    using (var pdf = new PdfDocument(VerifiedFormRenderer.Reader(bytesB)))
+    {
+        var fields = Fields(pdf); var verification = new NativeTextAppearance.VerificationContext();
+        var identities = new HashSet<string>(StringComparer.Ordinal); int verified = 0, blanks = 0;
+        foreach (var pair in manifestB.Targets.Where(t => t.Value.Assignment.Kind == "text"))
+        {
+            var dictionary = ScheduleBEmbeddedFont.VerifyDefaults(pdf, fields[pair.Key], pair.Value.Font!, verification);
+            identities.Add(dictionary.GetIndirectReference().ToString()); verified++;
+            if (pair.Value.Assignment.Text.Length == 0) { blanks++; continue; }
+            var apFonts = fields[pair.Key].GetWidgets()[0].GetPdfObject().GetAsDictionary(PdfName.AP).GetAsStream(PdfName.N)
+                .GetAsDictionary(PdfName.Resources).GetAsDictionary(PdfName.Font);
+            if (apFonts.Size() != 1 || !apFonts.GetAsDictionary(apFonts.KeySet().Single()).GetIndirectReference().Equals(dictionary.GetIndirectReference()))
+                throw new TestFailure("schedule-b-AP-default-resource-coherence");
+        }
+        Check(verified == 208 && blanks > 0 && identities.Count == 1, "schedule-b-single-embedded-font-all208-defaults-including-blanks");
+    }
+    // Materialize the same field wrappers and serialize without mutation first. This is fixture setup,
+    // not a relaxation of the exact-code negative or a new product acceptance rule.
+    byte[] roundtripB = Mutate(bytesB, pdf => { _ = Fields(pdf); });
+    VerifiedFormRenderer.VerifyEditable(roundtripB, manifestB);
+    string[] FieldStateExceptDa(byte[] bytes, string fieldName)
+    {
+        using var pdf = new PdfDocument(VerifiedFormRenderer.Reader(bytes));
+        var field = Fields(pdf)[fieldName].GetPdfObject();
+        var widget = Fields(pdf)[fieldName].GetWidgets()[0].GetPdfObject();
+        var ap = widget.GetAsDictionary(PdfName.AP).GetAsStream(PdfName.N);
+        return [field.Get(PdfName.V)?.ToString() ?? "<absent>", field.Get(PdfName.DV)?.ToString() ?? "<absent>",
+            widget.Get(PdfName.Rect)?.ToString() ?? "<absent>", field.Get(PdfName.DR)?.ToString() ?? "<absent>",
+            widget.Get(PdfName.DR)?.ToString() ?? "<absent>", Convert.ToHexString(SHA256.HashData(ap.GetBytes())),
+            AppearanceResourceIdentity.Compute(ap)];
+    }
+    byte[] MutateFieldDa(string fieldName, string da, bool expectMissingResource)
+    {
+        byte[] altered = Mutate(bytesB, pdf => Fields(pdf)[fieldName].GetPdfObject().Put(PdfName.DA, new PdfString(da)));
+        using (var pdf = new PdfDocument(VerifiedFormRenderer.Reader(altered)))
+            if (Fields(pdf)[fieldName].GetPdfObject().GetAsString(PdfName.DA)?.ToUnicodeString() != da)
+                throw new TestFailure("schedule-b-field-DA-mutation-not-persisted");
+        if (!FieldStateExceptDa(roundtripB, fieldName).SequenceEqual(FieldStateExceptDa(altered, fieldName)))
+            throw new TestFailure("schedule-b-field-DA-mutation-not-isolated");
+        var errors = new PdfTemplateInspector().Inspect(TemplateSnapshot.FromBytes(altered)).Findings
+            .Where(f => f.Severity == "error").Select(f => f.Code).ToArray();
+        if (expectMissingResource ? errors.Length != 1 || errors[0] != "E_FONT_RESOURCE" : errors.Length != 0)
+            throw new TestFailure("schedule-b-field-DA-inspection-precondition");
+        return altered;
+    }
+    // Retain the old missing-resource fixture and its earlier gate. A valid same-resource DA-color
+    // mutation separately reaches the exact defaults check with AP/resources/value/geometry unchanged.
+    foreach (string fieldName in new[] { populatedB, blankB })
+    {
+        string suffix = fieldName == blankB ? "blank" : "populated";
+        RejectCode(MutateFieldDa(fieldName, "/TimesLTStd-Roman 10 Tf 0 g", true),
+            manifestB, "reject-schedule-b-field-DA-missing-resource-" + suffix, "E_VERIFY_ACTIVE_CONTENT");
+        RejectCode(MutateFieldDa(fieldName, "/PdfFormScheduleB 10 Tf .5 g", false),
+            manifestB, "reject-schedule-b-field-DA-" + suffix, "E_VERIFY_FIELD_FONT_DEFAULT");
+        RejectCode(Mutate(bytesB, pdf =>
+        {
+            var native = PdfAcroForm.GetAcroForm(pdf, false).GetPdfObject().GetAsDictionary(PdfName.DR).GetAsDictionary(PdfName.Font)
+                .GetAsDictionary(new PdfName("TimesLTStd-Roman"));
+            if (native is null) throw new TestFailure("schedule-b-original-resource-preserved-for-mutation");
+            var fonts = new PdfDictionary(); fonts.Put(ScheduleBEmbeddedFont.ResourceName, native);
+            var resources = new PdfDictionary(); resources.Put(PdfName.Font, fonts);
+            Fields(pdf)[fieldName].GetPdfObject().Put(PdfName.DR, resources);
+        }), manifestB, "reject-schedule-b-local-DR-" + (fieldName == blankB ? "blank" : "populated"), "E_VERIFY_AP_FONT");
+    }
+    RejectCode(Mutate(bytesB, pdf => PdfAcroForm.GetAcroForm(pdf, false).GetPdfObject().Put(PdfName.DA, new PdfString("/PdfFormScheduleB 9 Tf 0 g"))),
+        manifestB, "reject-schedule-b-AcroForm-default-size", "E_VERIFY_FIELD_FONT_DEFAULT");
+    PdfDictionary EmbeddedDictionary(PdfDocument pdf) => PdfAcroForm.GetAcroForm(pdf, false).GetPdfObject()
+        .GetAsDictionary(PdfName.DR).GetAsDictionary(PdfName.Font).GetAsDictionary(ScheduleBEmbeddedFont.ResourceName);
+    // Use a different valid embedded program, so refusal proves identity rather than merely parse failure.
+    RejectCode(Mutate(bytesB, pdf =>
+    {
+        using var other = new PdfDocument(VerifiedFormRenderer.Reader(ready941.Candidate!.CopyForFixture()));
+        var descriptor = PdfAcroForm.GetAcroForm(other, false).GetPdfObject().GetAsDictionary(PdfName.DR).GetAsDictionary(PdfName.Font)
+            .GetAsDictionary(new PdfName("TimesNewRomanPSMT")).GetAsDictionary(PdfName.FontDescriptor);
+        EmbeddedDictionary(pdf).GetAsDictionary(PdfName.FontDescriptor).Put(PdfName.FontFile2, descriptor.GetAsStream(PdfName.FontFile2).CopyTo(pdf));
+    }), manifestB, "reject-schedule-b-different-valid-embedded-program", "E_VERIFY_AP_FONT_PROGRAM");
+    RejectCode(Mutate(bytesB, pdf => EmbeddedDictionary(pdf).Put(PdfName.Encoding, new PdfName("MacRomanEncoding"))),
+        manifestB, "reject-schedule-b-encoding-drift", "E_VERIFY_AP_FONT");
+    RejectCode(Mutate(bytesB, pdf =>
+    {
+        var widths = EmbeddedDictionary(pdf).GetAsArray(PdfName.Widths);
+        if (widths is null || widths.Size() == 0) throw new TestFailure("schedule-b-widths-present");
+        widths.Set(0, new PdfNumber(widths.GetAsNumber(0).IntValue() + 1));
+    }), manifestB, "reject-schedule-b-width-drift", "E_VERIFY_AP_FONT");
+    const string addedMapping = "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n/CMapName /FixtureIdentity def\n/CMapType 2 def\n1 begincodespacerange\n<00> <FF>\nendcodespacerange\n1 beginbfrange\n<00> <FF> <0000>\nendbfrange\nendcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n";
+    RejectCode(Mutate(bytesB, pdf => EmbeddedDictionary(pdf).Put(PdfName.ToUnicode, new PdfStream(Encoding.ASCII.GetBytes(addedMapping)).MakeIndirect(pdf))),
+        manifestB, "reject-schedule-b-added-ToUnicode", "E_VERIFY_AP_FONT_MAPPING");
+    // An AP-only font change must fail even though every editable DA/DR remains correct.
+    RejectCode(Mutate(bytesB, pdf =>
+    {
+        var ap = Fields(pdf)[populatedB].GetWidgets()[0].GetPdfObject().GetAsDictionary(PdfName.AP).GetAsStream(PdfName.N);
+        var oldFonts = ap.GetAsDictionary(PdfName.Resources).GetAsDictionary(PdfName.Font);
+        var fonts = new PdfDictionary();
+        fonts.Put(oldFonts.KeySet().Single(), PdfAcroForm.GetAcroForm(pdf, false).GetPdfObject().GetAsDictionary(PdfName.DR)
+            .GetAsDictionary(PdfName.Font).GetAsDictionary(new PdfName("TimesLTStd-Roman")));
+        var resources = new PdfDictionary(); resources.Put(PdfName.Font, fonts); ap.Put(PdfName.Resources, resources);
+    }), manifestB, "reject-schedule-b-AP-font-with-correct-defaults", "E_VERIFY_AP_FONT");
     stage = "editable-tamper-negatives";
     // Independent corruption checks assert that reopen verification includes blanks/defaults/AP, not only populated /V.
     var bytes941 = ready941.Candidate!.CopyForFixture(); var manifest941 = ready941.Candidate.ManifestForFixture;
@@ -469,10 +600,10 @@ try
         VerifiedFormRenderer.VerifyEditable(specimen, expected);
         Check(true, "all-ten-digit-shapes-in-all-eight-date-cells-" + digit);
     }
-    stage = "native-font-specimen";
+    stage = "embedded-font-specimen";
     // Distributed visibility fixture remains appearance-only. Public name fixtures above separately
     // exercise the exact admitted repertoire through production data, glyph, fit and readback checks.
-    CreateNativeFontSpecimen(templateB, output);
+    CreateEmbeddedFontSpecimen(readyB.Candidate!, output);
     Check(true, "all-printable-ascii-plus-accent-specimen-AP-decoding");
     if (Directory.EnumerateFiles(output).Sum(p => new FileInfo(p).Length) > 128L * 1024 * 1024) throw new TestFailure("output-cap");
     Save("integration-report.json", JsonSerializer.SerializeToUtf8Bytes(new
@@ -491,7 +622,8 @@ void Failure(string code, string? assertion, Exception error)
 {
     // Synthetic-only diagnostics: never exception.Message/ToString, supplied values or PDF bytes.
     var report = new { schema = "pdfform.synthetic-integration-failure/1", stage, passed, code, assertion,
-        exceptionType = error.GetType().FullName, codeStack = error.StackTrace };
+        exceptionType = error.GetType().FullName, codeStack = error.StackTrace,
+        expectedCode = (error as TestFailure)?.ExpectedCode, actualCode = (error as TestFailure)?.ActualCode };
     try { Save("failure-report.json", JsonSerializer.SerializeToUtf8Bytes(report, new JsonSerializerOptions { WriteIndented = true })); }
     catch { /* Keep the stable terminal code even if diagnostic storage itself fails. */ }
     Console.Error.WriteLine($"FAIL: {code}; stage={stage}; type={error.GetType().FullName}; assertion={assertion}");
@@ -524,63 +656,43 @@ static byte[] ChangeTextMatrices(byte[] input, double verticalScale, double shif
     return Encoding.Latin1.GetBytes(output);
 }
 
-static void CreateNativeFontSpecimen(TemplateSnapshot template, string output)
+void CreateEmbeddedFontSpecimen(VerifiedFillCandidate source, string output)
 {
-    var glyphs = Enumerable.Range(32, 95).Select(i => char.ConvertFromUtf32(i)).Append("É").ToArray();
-    var placements = new List<object>();
-    byte[] editable;
-    using (var bytes = new BoundedPdfMemoryStream())
+    var glyphs = Enumerable.Range(32, 95).Select(char.ConvertFromUtf32).Append("É").ToArray();
+    var placements = new List<object>(); int index = 0;
+    var original = source.ManifestForFixture;
+    var targets = original.Targets.ToDictionary(pair => pair.Key, pair =>
     {
-        using (var pdf = ApprovedTemplateNormalizer.OpenForNormalization(template, bytes))
-        {
-            var form = PdfAcroForm.GetAcroForm(pdf, false);
-            var font = PdfFontFactory.CreateFont(form.GetPdfObject().GetAsDictionary(PdfName.DR).GetAsDictionary(PdfName.Font).GetAsDictionary(new PdfName("TimesLTStd-Roman")));
-            if (font.IsEmbedded()) throw new TestFailure("specimen-font-identity");
-            var fields = form.GetAllFormFields().Where(p => p.Value.IsTerminalFormField()).ToArray();
-            int index = 0;
-            foreach (var p in fields)
-            {
-                if (!PdfName.Tx.Equals(p.Value.GetFormType())) continue;
-                string value = index < glyphs.Length ? glyphs[index] : "";
-                if (!value.EnumerateRunes().All(r => font.ContainsGlyph(r.Value))) throw new TestFailure("specimen-missing-native-glyph");
-                p.Value.SetValue(value, font, 10);
-                p.Value.GetPdfObject().Put(PdfName.DV, new PdfString(""));
-                if (value.Length == 0) NativeTextAppearance.SetEmptyAppearance(pdf, p.Value);
-                if (index < glyphs.Length)
-                {
-                    var widget = p.Value.GetWidgets().Single();
-                    var rect = widget.GetRectangle().ToFloatArray();
-                    placements.Add(new { field = p.Key, text = value, codepoint = (int)value[0], page = pdf.GetPageNumber(widget.GetPage()), rect, exemptFromInk = value == " " });
-                }
-                index++;
-            }
-            form.GetPdfObject().Put(PdfName.NeedAppearances, PdfBoolean.FALSE);
-        }
-        editable = bytes.ToArray();
-    }
-    using (var pdf = new PdfDocument(VerifiedFormRenderer.Reader(editable)))
-    {
-        int index = 0;
-        foreach (var p in PdfAcroForm.GetAcroForm(pdf, false).GetAllFormFields().Where(p => p.Value.IsTerminalFormField() && PdfName.Tx.Equals(p.Value.GetFormType())))
-        {
-            string expected = index < glyphs.Length ? glyphs[index] : "";
-            var ap = p.Value.GetWidgets().Single().GetPdfObject().GetAsDictionary(PdfName.AP).GetAsStream(PdfName.N);
-            var witness = new TextWitness();
-            new PdfCanvasProcessor(witness).ProcessContent(ap.GetBytes(), new PdfResources(ap.GetAsDictionary(PdfName.Resources)));
-            if (witness.Text != expected || p.Value.GetValueAsString() != expected) throw new TestFailure("specimen-AP-decode");
-            index++;
-        }
-    }
+        if (pair.Value.Assignment.Kind == "checkbox") return pair.Value;
+        string value = index < glyphs.Length ? glyphs[index] : "";
+        if (index < glyphs.Length)
+            placements.Add(new { field = pair.Key, text = value, codepoint = (int)value[0], page = pair.Value.Widget.Page,
+                rect = pair.Value.Widget.Rectangle, exemptFromInk = value == " " });
+        index++;
+        return pair.Value with { Assignment = pair.Value.Assignment with { Text = value } };
+    }, StringComparer.Ordinal);
+    var manifest = original with { Targets = targets };
+    byte[] editable = Mutate(source.CopyForFixture(), pdf => VerifiedFormRenderer.ReplaceAll(pdf, manifest, FixtureFonts(pdf, manifest)));
+    VerifiedFormRenderer.VerifyEditable(editable, manifest);
+    var flattenedManifest = FlattenedPaintVerifier.Capture(editable, manifest);
+    byte[] flattened = Mutate(editable, pdf =>
+    { var form = PdfAcroForm.GetAcroForm(pdf, false); form.SetGenerateAppearance(false); form.FlattenFields(); });
+    VerifiedFormRenderer.VerifyFlattened(flattened, flattenedManifest);
     using (var file = new FileStream(Path.Combine(output, "font-specimen.editable.pdf"), FileMode.CreateNew)) file.Write(editable);
-    using (var file = new FileStream(Path.Combine(output, "font-specimen.flattened.pdf"), FileMode.CreateNew))
-    using (var pdf = new PdfDocument(VerifiedFormRenderer.Reader(editable), new PdfWriter(file)))
-    { pdf.SetFlushUnusedObjects(false); var form = PdfAcroForm.GetAcroForm(pdf, false); form.SetGenerateAppearance(false); form.FlattenFields(); }
+    using (var file = new FileStream(Path.Combine(output, "font-specimen.flattened.pdf"), FileMode.CreateNew)) file.Write(flattened);
     using (var file = new FileStream(Path.Combine(output, "font-specimen.assignments.json"), FileMode.CreateNew))
-        file.Write(JsonSerializer.SerializeToUtf8Bytes(new { schema = "pdfform.synthetic-font-specimen/1", templateSha256 = template.Sha256,
-            font = "TimesLTStd-Roman", fontSizePt = 10, productionRepertoireUnchanged = false, repertoire = "U+0020-U+007E plus U+00C9",
-            provenance = "Distributed appearance-only specimen; public name preparation is covered by separate fixtures.", placements }, new JsonSerializerOptions { WriteIndented = true }));
+        file.Write(JsonSerializer.SerializeToUtf8Bytes(new { schema = "pdfform.synthetic-font-specimen/1", templateSha256 = original.TemplateSha256,
+            font = ScheduleBEmbeddedFont.Name, fontSizePt = 10, embeddedProgramSha256 = ScheduleBEmbeddedFont.ProgramSha256,
+            policy = ScheduleBEmbeddedFont.Policy, productionRepertoireUnchanged = true, repertoire = "U+0020-U+007E plus U+00C9",
+            provenance = "Distributed derived-input appearance fixture: full replacement, fit, closed readback and flatten checks; public data validation is covered by separate name fixtures.", placements }, new JsonSerializerOptions { WriteIndented = true }));
 }
-sealed class TestFailure(string safeName) : Exception { internal string SafeName { get; } = safeName; }
+
+sealed class TestFailure(string safeName, string? expectedCode = null, string? actualCode = null) : Exception
+{
+    internal string SafeName { get; } = safeName;
+    internal string? ExpectedCode { get; } = expectedCode;
+    internal string? ActualCode { get; } = actualCode;
+}
 sealed class TextWitness : IEventListener
 {
     private readonly StringBuilder text = new();

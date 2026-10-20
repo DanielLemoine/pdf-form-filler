@@ -2,11 +2,11 @@
 
 An offline .NET command-line tool in development for the exact reviewed Form 941 (March 2026) and Schedule B (March 2024) PDF templates. It validates supplied values and creates new editable or flattened PDFs. It does not calculate tax or file returns.
 
-**Current limitation:** Schedule B ordinary multi-character text failed independent visual acceptance. Poppler showed uneven spacing and overlapping letters where MuPDF rendered the same text cleanly. An embedded-font correction is in progress and is **not included in this snapshot**. The current Schedule B fill path must not be treated as ready for normal use. Passing semantic/serialization tests did not detect this visual defect. See [development status](docs/DEVELOPMENT-STATUS.md).
+**Development checkpoint:** The embedded-font Schedule B correction passed Linux regression checks and a selected two-viewer visual review. Ordinary names, printable ASCII plus É, and the current Form 941 date/checkbox details were checked in Poppler and MuPDF. The earlier unembedded-font visual failure remains part of the project history. Windows qualification and configuration-only form onboarding are still pending. See [development status](docs/DEVELOPMENT-STATUS.md).
 
 ## Adding forms: current limitation
 
-Mappings and validation rules are profile-driven, but current trusted profile/template registration is compiled into the engine for the two bundled forms. Adding a supported form currently requires source changes and rebuilding; configuration-only onboarding is **not implemented**. An external hash-bound form catalog is a pending requirement, alongside the Schedule B appearance correction. Arbitrary profile/template bytes cannot opt themselves into trusted filling.
+Mappings and validation rules are profile-driven, but current trusted profile/template registration is compiled into the engine for the two bundled forms. Adding a supported form currently requires source changes and rebuilding; configuration-only onboarding is **not implemented**. An external hash-bound form catalog and its inspector/renderer/CLI integration are pending requirements. Arbitrary profile/template bytes cannot opt themselves into trusted filling.
 
 ## Build from source
 
@@ -44,7 +44,7 @@ There is no overwrite switch: `--force` is unqualified and refused. `run` and di
 
 Ordinary diagnostics are value-free JSON on stdout. A fill result's `document.pdf` path is a logical privacy-preserving label; the destination is exactly the caller's `--out` path. Independently compare the destination's length/SHA-256 with its descriptor. An error exit does not prove that no file was created: a postcommit diagnostic failure can leave the PDF intact and report `E_DIAGNOSTIC_WRITE artifactState=published`. Preserve the destination and inspect it after confirming process settlement; do not assume rollback or blindly rerun.
 
-The examples are independent fictional form demonstrations, not a reconciled two-form return. Keep real data outside the repository. Dates are ISO JSON values such as `2026-09-25`; the Form 941 date cells display `09/25/2026`. Current source accepts printable ASCII plus É for Schedule B text, but this repertoire does not resolve the visual defect described above.
+The examples are independent fictional form demonstrations, not a reconciled two-form return. Keep real data outside the repository. Dates are ISO JSON values such as `2026-09-25`; the Form 941 date cells display `09/25/2026`. Schedule B uses the bundled, embedded Liberation Serif font at fixed 10 pt for printable ASCII (U+0020–U+007E) plus É. Unsupported Unicode and text that does not fit are rejected; no automatic fallback or shrink-to-fit is used. Filling reports `W_FONT_EXPLICIT_REPLACEMENT`.
 
 ## Tests
 
@@ -63,7 +63,7 @@ python3 tools/check_migration.py
 
 Use a new final renderer directory for each attempt. The publication harness accepts exactly one existing fully qualified parent, creates its own unique attempt, and emits a terminal receipt. An exit code alone does not replace reviewing that receipt. Windows test paths should be fully qualified and meet the local fixed-NTFS/no-reparse contract. The old convenience shell wrapper is intentionally omitted because its root-admission behavior is stale.
 
-The code snapshot's Linux checks passed: Core 142, inspector 147, publication 244, renderer 136 and CLI 45, with nine deterministic migration artifact comparisons. The publication result was reused only after comparing its complete seven-file runtime output with the prior passing run. These counts are distinct checks/assertions, not independent viewer passes. Windows qualification and the Schedule B visual fix remain open. Optional Python appearance scripts need separately installed pypdf/PyMuPDF/rasterizer tooling; that optional environment is not a supported pinned reproduction recipe.
+The embedded-font development cut's Linux checks passed: Core 142, inspector 147, renderer 149 and CLI 45, with nine deterministic migration artifact comparisons. The 244-case publication result was reused only after comparing its complete seven-file runtime output with the prior passing run. A separate visual check covered 12 PDFs and 28 rendered pages in Poppler 26.05.0 and MuPDF 1.26.11; all 2,388 recorded checks and independent inspection of four contact sheets passed within that selected scope. Harness counts and visual checks are distinct evidence. Windows, Adobe, viewer editing/reset and physical-print qualification remain open. Optional Python appearance scripts need separately installed pypdf/PyMuPDF/rasterizer tooling; that optional environment is not a supported pinned reproduction recipe.
 
 ## Supplemental golden publication tests
 

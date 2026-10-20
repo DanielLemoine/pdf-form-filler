@@ -17,18 +17,16 @@ using static PdfForm.Pdf.VerifiedFormRenderer;
 namespace PdfForm.Pdf;
 
 internal sealed record NativeFontWitness(string Name, string MetricsDigest, string? EmbeddedDigest,
-    FontProgram? ExactOutlines, bool PrivateUnembeddedException);
+    FontProgram? ExactOutlines, bool PrivateUnembeddedException, string Policy = "native-template");
 
-/// <summary>Fixed native-resource rendering only. A narrowly scoped private exception does not establish portable font fidelity.</summary>
+/// <summary>Fixed-size native Form 941 text and explicitly embedded Schedule B text; no fallback selection.</summary>
 internal static class NativeTextAppearance
 {
     internal const float FontSize = 10;
     private const float Padding = 1;
     private const float DatePadding = .5f;
     private const string DateTarget = "topmostSubform[0].Page2[0].f2_9[0]";
-    // Explicit exact-template policy: printable ASCII plus U+00C9. All 96 glyphs have bounded
-    // dual-renderer visibility evidence; each supplied value must still pass native glyph and fit checks.
-    // This does not qualify the unembedded font's substituted outlines or arbitrary Unicode.
+    // Schedule B retains a finite ASCII-plus-É policy even though its bundled font contains more glyphs.
     private static readonly ConcurrentDictionary<string, FontProgram> Programs = new(StringComparer.Ordinal);
     private static readonly double[][] ReviewedDateCells =
     [
@@ -43,7 +41,7 @@ internal static class NativeTextAppearance
     ];
 
     internal static PdfFont ResolveFont(string templateSha256, PdfDocument pdf, PdfFormField field,
-        FontInspection inspected, out NativeFontWitness witness)
+        FontInspection inspected, out NativeFontWitness witness, ScheduleBEmbeddedFont.DocumentFont? replacement = null)
     {
         Require(inspected.Size == FontSize && inspected.ResourcePresent && inspected.Name is not null,
             "E_FONT_FIXED_SIZE", "The renderer requires a supported fixed 10-point template font.", 3);
@@ -70,12 +68,13 @@ internal static class NativeTextAppearance
         }
         else
         {
-            // Explicit bounded-development adoption. Changing the release scope cannot silently inherit this exception.
-            privateException = templateSha256 == ApprovedTemplates.ScheduleBSha256
+            // The source-template resource is still independently admitted before deliberate replacement.
+            bool approvedSource = templateSha256 == ApprovedTemplates.ScheduleBSha256
                 && ProductionProfileRegistry.AdoptionScope == "bounded_private_development"
                 && dict.GetAsName(PdfName.Subtype)?.GetValue() == "Type1"
                 && dict.GetAsName(PdfName.Encoding)?.GetValue() == "WinAnsiEncoding" && !font.IsEmbedded();
-            Require(privateException, "E_FONT_NOT_EMBEDDED", "No approved portable font strategy is available for this resource.", 3);
+            Require(approvedSource && replacement is not null, "E_FONT_NOT_EMBEDDED", "No explicit embedded font policy is available for this resource.", 3);
+            return replacement!.Get(pdf, out witness);
         }
         witness = new(expectedName, MetricsDigest(dict), embeddedDigest, program, privateException);
         return font;
@@ -86,9 +85,9 @@ internal static class NativeTextAppearance
         var runes = value.EnumerateRunes().ToArray();
         Require(!value.Any(char.IsControl), "E_TEXT_CONTROL", "Control characters are unsupported in text appearances.", 3);
         Require(runes.All(r => font.ContainsGlyph(r.Value)), "E_FONT_GLYPH", "A supplied character has no glyph in the exact native font.", 3);
-        if (witness.PrivateUnembeddedException)
-            Require(runes.All(r => r.Value is >= 0x20 and <= 0x7e or 0x00c9),
-                "E_FONT_GLYPH_UNQUALIFIED", "Schedule B supports printable ASCII (U+0020-U+007E) and U+00C9 only under its unembedded-font policy.", 3);
+        if (witness.Policy == ScheduleBEmbeddedFont.Policy)
+            Require(runes.All(r => ScheduleBEmbeddedFont.Supports(r.Value)),
+                "E_FONT_GLYPH_UNQUALIFIED", "Schedule B supports printable ASCII (U+0020-U+007E) and U+00C9 only under its explicit embedded-font policy.", 3);
         if (widget.Effective.MaxLength is > 0)
             Require(runes.Length <= widget.Effective.MaxLength, "E_TEXT_MAX_LENGTH", "A supplied text value exceeds the target capacity.");
         if (value.Length == 0) return;
@@ -197,7 +196,7 @@ internal static class NativeTextAppearance
         }
         return float.IsFinite(bottom) ? (bottom, top) : (0, 0);
     }
-    private static string MetricsDigest(PdfDictionary font)
+    internal static string MetricsDigest(PdfDictionary font)
     {
         // Both exact approved native resources and their authored output lack ToUnicode.
         // A later remapping must not let extracted characters stand in for different painted codes.
@@ -211,10 +210,35 @@ internal static class NativeTextAppearance
         return Digest(Encoding.UTF8.GetBytes(text.ToString()));
     }
 
+    internal static void VerifyFont(PdfFont font, NativeFontWitness expected, VerificationContext context)
+    {
+        var dictionary = font.GetPdfObject();
+        Require(dictionary.GetAsName(PdfName.BaseFont)?.GetValue() == expected.Name
+            && context.Metrics(dictionary) == expected.MetricsDigest,
+            "E_VERIFY_AP_FONT", "The output font differs from its explicit resource policy.");
+        var descriptor = dictionary.GetAsDictionary(PdfName.FontDescriptor);
+        var embedded = descriptor?.GetAsStream(PdfName.FontFile2);
+        Require(expected.EmbeddedDigest is null ? embedded is null && !font.IsEmbedded()
+            : embedded is not null && font.IsEmbedded() && context.EmbeddedDigest(embedded) == expected.EmbeddedDigest,
+            "E_VERIFY_AP_FONT_PROGRAM", "The appearance embedded-font identity changed.");
+        if (expected.Policy == ScheduleBEmbeddedFont.Policy)
+            Require(PdfName.TrueType.Equals(dictionary.GetAsName(PdfName.Subtype))
+                && PdfName.WinAnsiEncoding.Equals(dictionary.GetAsName(PdfName.Encoding))
+                && descriptor is not null && !descriptor.ContainsKey(PdfName.FontFile) && !descriptor.ContainsKey(PdfName.FontFile3),
+                "E_VERIFY_AP_FONT_PROGRAM", "The explicit embedded-font representation changed.");
+    }
+
     /// <summary>Read-only-document-local memoization avoids repeatedly decompressing the same verified font per glyph.</summary>
     internal sealed class VerificationContext
     {
         private readonly Dictionary<PdfDictionary, string> metrics = new(ReferenceEqualityComparer.Instance);
+        private readonly Dictionary<PdfDictionary, PdfFont> fonts = new(ReferenceEqualityComparer.Instance);
+        internal PdfFont Font(PdfDictionary dictionary)
+        {
+            if (fonts.TryGetValue(dictionary, out var font)) return font;
+            Require(fonts.Count < 32, "E_VERIFY_FONT_LIMIT", "The candidate has too many distinct font resources.");
+            return fonts[dictionary] = PdfFontFactory.CreateFont(dictionary);
+        }
         private readonly Dictionary<PdfStream, string> embedded = new(ReferenceEqualityComparer.Instance);
         private long decodedFontBytes;
         internal string Metrics(PdfDictionary font)
@@ -254,13 +278,8 @@ internal static class NativeTextAppearance
                 && Math.Abs(state.GetCharSpacing()) < .001 && Math.Abs(state.GetWordSpacing()) < .001
                 && info.GetTextRenderMode() == 0 && Math.Abs(info.GetRise()) < .001,
                 "E_VERIFY_AP_TEXT_STATE", "The appearance changed fixed-size text painting policy.");
-            Require(font.GetPdfObject().GetAsName(PdfName.BaseFont)?.GetValue() == target.Font!.Name
-                && context.Metrics(font.GetPdfObject()) == target.Font.MetricsDigest,
-                "E_VERIFY_AP_FONT", "The appearance font differs from the exact native resource.");
-            var embedded = font.GetPdfObject().GetAsDictionary(PdfName.FontDescriptor)?.GetAsStream(PdfName.FontFile2);
-            Require(target.Font.EmbeddedDigest is null ? embedded is null && !font.IsEmbedded()
-                : embedded is not null && context.EmbeddedDigest(embedded) == target.Font.EmbeddedDigest,
-                "E_VERIFY_AP_FONT_PROGRAM", "The appearance embedded-font identity changed.");
+            var expectedFont = target.Font ?? throw new VerifiedFillException("E_VERIFY_AP_FONT", "The expected text-font witness is missing.");
+            VerifyFont(font, expectedFont, context);
             Require(info.GetFillColor() is iText.Kernel.Colors.DeviceGray gray
                 && gray.GetColorValue() is [var black] && black == 0,
                 "E_VERIFY_AP_COLOR", "The appearance must paint exact authored DeviceGray black text.");
@@ -283,7 +302,7 @@ internal static class NativeTextAppearance
                     && Math.Abs(ctm.Get(Matrix.I21)) < .00001 && Math.Abs(ctm.Get(Matrix.I22) - 1) < .00001,
                     "E_VERIFY_AP_TRANSFORM", "The native appearance has an unsupported full text transform.");
                 float left, right, bottom, top;
-                var glyphBox = target.Font.ExactOutlines?.GetGlyph(runes[0].Value)?.GetBbox();
+                var glyphBox = expectedFont.ExactOutlines?.GetGlyph(runes[0].Value)?.GetBbox();
                 if (glyphBox is not null)
                 {
                     left = start.Get(0) + glyphBox[0] * FontSize / 1000;
@@ -294,7 +313,7 @@ internal static class NativeTextAppearance
                 else if (runes[0].Value == ' ') { GlyphCount++; continue; }
                 else
                 {
-                    Require(target.Font.PrivateUnembeddedException, "E_VERIFY_AP_OUTLINE", "A native glyph outline cannot be verified.");
+                    Require(expectedFont.PrivateUnembeddedException, "E_VERIFY_AP_OUTLINE", "A native glyph outline cannot be verified.");
                     // Descriptor bounds are deliberately not described as actual outlines under the private exception.
                     left = start.Get(0); right = end.Get(0);
                     bottom = start.Get(1) + font.GetDescent(character.GetText(), FontSize);

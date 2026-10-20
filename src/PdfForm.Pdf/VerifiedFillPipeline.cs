@@ -27,7 +27,7 @@ public sealed class VerifiedFillResult
 }
 
 /// <summary>
-/// Trusted-profile, immutable-input fill boundary. No font substitution, profile enrollment, force replacement,
+/// Trusted-profile, immutable-input fill boundary. Only the explicit bundled Schedule B font replacement; no fallback selection, profile enrollment, force replacement,
 /// runtime downloads, source-file recycling or external actions. This is not viewer, host, print or filing qualification.
 /// </summary>
 public static class VerifiedFillPipeline
@@ -79,6 +79,9 @@ public static class VerifiedFillPipeline
             if (candidate.UsesPrivateUnembeddedFont)
                 findings.Add(new("W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED", "render",
                     "Bounded private output preserves the exact unembedded native font and only evidenced glyphs; actual font outlines and cross-viewer portability remain unqualified.", Severity: "warning"));
+            if (candidate.UsesExplicitEmbeddedFont)
+                findings.Add(new("W_FONT_EXPLICIT_REPLACEMENT", "render",
+                    "Schedule B deliberately replaces the source TimesLTStd-Roman text resource with bundled embedded Liberation Serif Regular at 10 points; only printable ASCII and U+00C9 are admitted. This is not a viewer or filing qualification.", Severity: "warning"));
             stats["targetsVerified"] = assignments.Count;
             stats["normalAppearancesVerified"] = assignments.Count;
             stats["pagesVerified"] = bound.Inspection.Pages;
@@ -132,6 +135,7 @@ internal sealed class VerifiedFillCandidate
     internal bool Flattened { get; }
     internal bool UsesNativeCheckboxAppearances => manifest.Targets.Values.Any(t => t.Assignment.Kind == "checkbox" && t.CheckboxMark is null);
     internal bool UsesPrivateUnembeddedFont => manifest.Targets.Values.Any(t => t.Font?.PrivateUnembeddedException == true);
+    internal bool UsesExplicitEmbeddedFont => manifest.Targets.Values.Any(t => t.Font?.Policy == ScheduleBEmbeddedFont.Policy);
     internal CandidateArtifact Artifact(string id, string path) => new(id, path, bytes, Verify);
     internal RenderManifest ManifestForFixture => manifest;
     internal byte[] CopyForFixture() => bytes.ToArray();
