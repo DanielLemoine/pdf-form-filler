@@ -26,9 +26,17 @@ Accepted results, independently reconciled on 20 October 2026, are Core 202, ins
 
 Earlier interrupted runs, the configured-font assignment failure, and the later publication harness setup/fixture failures remain retained failures. The successful corrections do not reclassify those attempts. The 379-case Windows publication selection remains prospective.
 
-The separate third-form generator mode does not change ordinary CLI counts and has not completed end-to-end acceptance. Before that acceptance, freeze the complete built production CLI closure, then introduce a new synthetic blank form and reviewed configuration, and run check/configure/save/sample/editable/flattened flows without changing any frozen engine bytes. Human draft review is mandatory.
+## Same-engine synthetic third-form milestone accepted
 
-The external catalog path is implemented development source; configuration-only onboarding is not yet end-to-end qualified. Clean-room restore/build of the curated source, generic visual acceptance, Windows viewer editing/reset, physical printing and filing readiness remain open. The embedded-font two-form results above apply only to their exact earlier cut.
+On 20 October 2026, a separate fictional workshop request passed the actual Linux workflow: generate the blank twice, check, configure, independently review the emitted draft and a separate edited copy, save-config, check the saved configuration, generate sample input, validate, and fill both editable and flattened outputs. The two blanks were byte-identical. No third-form identity was added to production and no engine source or binary changed during onboarding.
+
+The complete 269-file production/fixture/runtime closure was frozen before introducing the blank and preserved throughout. All product, C# test, project and bundled-font inputs match product-source commit `7f1b19fd1526019d4589b0ea605e7eac83f21ad9`; 136 tested inputs match the public tree. Private admission documentation, updated documentation and curated test-wrapper packaging differ. This is not a clean-room build of the published layout. Existing compiled receipts correctly retain their development-local/unpublished-source labels; a documentation-only successor does not change that identity.
+
+The reviewed profile supplies names, labels, two required flags and explicitly fictional sample hints. The template, geometry, capacities, checkbox mapping and observed font policies remain fixed. A date-looking reference value stays ordinary single-line text; no date semantics were inferred.
+
+Independent inspection verified four canonical editable fields/widgets with exact current values, original blank reset defaults and four normal appearances. Flattened output has zero fields/widgets and contains all three expected text values. The blank and both filled one-page PDFs were rendered at 144 dpi in Poppler and independently viewed: values fit their boxes, the checkbox cross is clear, and labels/disclaimers are intact. Editable and flattened rasters are byte-identical. These are selected synthetic Linux observations, not universal viewer acceptance. Final pair inspection does not independently rehash the editable embedded-font program; font policy and original program identity come from the accepted blank/configuration checks.
+
+Clean-room restore/build of the curated source, current Windows/native qualification, interactive viewer editing/save/reopen/reset, physical printing, supported binary packaging and filing readiness remain open. The 379-case Windows publication selection is still prospective. Earlier Windows focused corrections do not turn their separate incomplete full-gate results into passes. The earlier embedded-font two-form evidence remains specific to its original cut. See the [work-PC handoff](WORK-PC-ACCEPTANCE.md) for the remaining checks and dependencies.
 
 ## Scope boundaries
 

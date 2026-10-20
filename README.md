@@ -2,13 +2,13 @@
 
 An offline .NET command-line tool in development for the exact reviewed Form 941 (March 2026) and Schedule B (March 2024) PDF templates. It validates supplied values and creates new editable or flattened PDFs. It does not calculate tax or file returns.
 
-**Development checkpoint:** The earlier embedded-font two-form cut passed Linux regression and selected Poppler/MuPDF visual checks. This draft adds an external, hash-bound catalog/profile workflow for supported AcroForms. Its source review and combined synthetic Linux regression checkpoint have passed. Unchanged-engine third-form acceptance is still pending. Earlier two-form results do not qualify the new generic path. See [development status](docs/DEVELOPMENT-STATUS.md).
+**Development checkpoint:** The earlier embedded-font two-form cut passed Linux regression and selected Poppler/MuPDF visual checks. This draft adds an external, hash-bound catalog/profile workflow for supported AcroForms. Its source review and combined synthetic Linux regression checkpoint have passed. A separate synthetic non-tax third form has now passed configuration-only onboarding, editable/flattened structural checks and selected Linux visual review with the engine unchanged. Windows, interactive-viewer and physical-print qualification remain open. See [development status](docs/DEVELOPMENT-STATUS.md).
 
 ## Adding a form by configuration
 
 The draft now includes `check`, `configure`, operator review, `save-config`, `sample-input`, and catalog-based validation/filling. A saved package binds exact template and profile bytes to implemented font/layout/checkbox policies; it does not add a form identity to the compiled registry. The two bundled IRS profiles remain available through their existing `--profile` path.
 
-See the [configuration workflow](docs/GENERIC-ONBOARDING.md). Configuration cannot implement unsupported PDF features or waive independent inspection, glyph, fit, appearance or publication checks. Configuration-only onboarding is an implemented development path whose end-to-end acceptance is pending, not a completed supported-form guarantee.
+See the [configuration workflow](docs/GENERIC-ONBOARDING.md). Configuration cannot implement unsupported PDF features or waive independent inspection, glyph, fit, appearance or publication checks. The accepted synthetic third-form workflow demonstrates this configuration-only path; it does not qualify arbitrary forms or unsupported features. For the next workstation checks, use the [work-PC acceptance handoff](docs/WORK-PC-ACCEPTANCE.md).
 
 ## Build from source
 

@@ -1,6 +1,6 @@
 # Add a supported AcroForm through configuration
 
-This is the current development command flow. The external catalog implementation is source-reviewed; its complete unchanged-engine third-form acceptance is still pending. Use blank synthetic forms until the relevant environment and outputs have been checked. Configuration changes cannot add an unsupported PDF feature.
+This is the current development command flow. The external catalog implementation is source-reviewed, and one synthetic non-tax third form has passed this workflow with an unchanged engine plus independent Linux structural/raster review. Use blank synthetic forms until the relevant environment and outputs have been checked. Configuration changes cannot add an unsupported PDF feature.
 
 ## Inspect and draft
 
@@ -30,8 +30,9 @@ dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll save-config blank-form.pdf 
 ## Generate fictional input and fill
 
 ```sh
+dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll check form-package/template.pdf --catalog form-package/catalog.json
 dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll sample-input --catalog form-package/catalog.json --out sample.json
-dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll validate --catalog form-package/catalog.json --data sample.json
+dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll validate --catalog form-package/catalog.json --data sample.json --pdf form-package/template.pdf
 dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll fill form-package/template.pdf --catalog form-package/catalog.json --data sample.json --out filled-editable.pdf
 dotnet src/PdfForm.Cli/bin/Debug/net10.0/pdfform.dll fill form-package/template.pdf --catalog form-package/catalog.json --data sample.json --out filled-flat.pdf --flatten
 ```
@@ -44,4 +45,4 @@ There is no overwrite mode. A committed artifact may remain after diagnostic out
 
 ## Unchanged-engine acceptance boundary
 
-For development acceptance, build and hash the complete production CLI closure before generating or introducing the new form/configuration. The separate test project has an explicit third-fixture mode; it never registers that form in production. Preserve the frozen engine bytes through draft generation, documented operator review, save, sample and both fill modes. Record actual process results and recheck the original closure afterward. The command examples above are usage instructions, not a report that this acceptance has passed.
+For development acceptance, build and hash the complete production CLI closure before generating or introducing the new form/configuration. The separate test project has an explicit third-fixture mode; it never registers that form in production. Preserve the frozen engine bytes through draft generation, documented operator review, save, sample and both fill modes. Record actual process results and recheck the original closure afterward. This sequence passed for the fictional workshop fixture on 20 October 2026 with product source `7f1b19fd1526019d4589b0ea605e7eac83f21ad9` and the original engine closure unchanged. The real draft was independently reviewed before save; both filled outputs were structurally inspected and visually reviewed. The examples are still a new acceptance run for each new form and workstation. See [development status](DEVELOPMENT-STATUS.md) for the exact scope and [work-PC acceptance](WORK-PC-ACCEPTANCE.md) for the remaining checks.
