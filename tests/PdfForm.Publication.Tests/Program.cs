@@ -489,6 +489,7 @@ if (OperatingSystem.IsLinux())
 }
 PublicationCorrectionTests.Run(Test);
 PublicationHarnessTests.Register(Test);
+PdfForm.Publication.Tests.ConfigurationPublicationFailureFixtures.Register(Test, Check);
 return PublicationHarness.Run(args, selected).ExitCode;
 }
 catch

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using PdfForm.Core;
 
 namespace PdfForm.Pdf;
 
@@ -14,6 +15,12 @@ public sealed class TemplateSnapshot
     }
     public string Sha256 { get; }
     public int ByteCount => bytes.Length;
+    /// <summary>Compare the exact immutable byte identity already observed by the caller; no path is reopened.</summary>
+    public bool MatchesConfiguration(FormConfigurationSnapshot configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        return configuration.TemplateSha256 == Sha256 && configuration.TemplateBytes == ByteCount;
+    }
     public Stream OpenRead() => new MemoryStream(bytes, 0, bytes.Length, writable: false, publiclyVisible: false);
     public static TemplateSnapshot FromBytes(ReadOnlySpan<byte> input)
     {

@@ -58,7 +58,7 @@ public sealed record KeyDefinition
     public string? Strip { get; init; }
     public string? Transform { get; init; }
     public int? MaxLength { get; init; }
-    public JsonElement Targets { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Targets { get; init; }
     public int[]? Parts { get; init; }
     public string? Target { get; init; }
     public string? Dollars { get; init; }
@@ -122,10 +122,40 @@ public sealed record ProfileDefinition
     public required KeyDefinition[] Keys { get; init; }
     public required RuleDefinition[] Rules { get; init; }
     public required JsonElement[] Unmapped { get; init; }
-    public JsonElement Source { get; init; }
-    public JsonElement Extensions { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Source { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Extensions { get; init; }
+    // Stored only for a parsed v3 wire document. Internal state is not an accepted v2 JSON member.
+    internal Dictionary<string, JsonElement> SyntheticSamples { get; init; } = new(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, JsonElement> GetSampleHints() => new System.Collections.ObjectModel.ReadOnlyDictionary<string, JsonElement>(
+        SyntheticSamples.ToDictionary(x => x.Key, x => x.Value.Clone(), StringComparer.Ordinal));
+    public JsonElement? GetSampleHint(string key) => SyntheticSamples.TryGetValue(key, out var value) ? value.Clone() : null;
     [JsonIgnore] public string Identity => $"{Id}@{Revision}";
     public IEnumerable<string> EnumerateTargets() => Keys.SelectMany(x => x.EnumerateTargets());
+}
+/// <summary>Context-free wire shape; the existing v2 DTO and its required members stay separate.</summary>
+public sealed record GenericProfileDocument
+{
+    public required string Schema { get; init; }
+    public required string Id { get; init; }
+    public required string Revision { get; init; }
+    public required int ProfileVersion { get; init; }
+    public required string Title { get; init; }
+    public required TemplateDefinition Template { get; init; }
+    public required string[] Capabilities { get; init; }
+    public required ProfileOptions Options { get; init; }
+    public required KeyDefinition[] Keys { get; init; }
+    public required RuleDefinition[] Rules { get; init; }
+    public required JsonElement[] Unmapped { get; init; }
+    public Dictionary<string, JsonElement>? SampleHints { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Source { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Extensions { get; init; }
+}
+public sealed record GenericDataDocument
+{
+    public required string Schema { get; init; }
+    public required string Profile { get; init; }
+    public required Dictionary<string, JsonElement> Values { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Extensions { get; init; }
 }
 public sealed record FilingContext
 {
@@ -137,9 +167,9 @@ public sealed record DataDocument
 {
     public required string Schema { get; init; }
     public required string Profile { get; init; }
-    public required FilingContext Context { get; init; }
+    public required FilingContext? Context { get; init; }
     public required Dictionary<string, JsonElement> Values { get; init; }
-    public JsonElement Extensions { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public JsonElement Extensions { get; init; }
 }
 public enum ValuePresence { Missing, Blank, Supplied }
 public sealed record NormalizedValue(string Kind, ValuePresence Presence, bool IsValid,

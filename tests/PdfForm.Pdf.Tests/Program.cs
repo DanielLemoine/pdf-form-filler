@@ -99,6 +99,8 @@ foreach (var (candidate, reason) in new[]
 }) Check(!ApprovedTemplateNormalizer.HasNoActiveContent(TemplateSnapshot.FromBytes(candidate)), "no-form output rejects " + reason);
 Check(!ApprovedTemplateNormalizer.HasNoActiveContent(TemplateSnapshot.FromBytes(Encoding.ASCII.GetBytes("not a pdf"))), "output verification rejects parser failure");
 TraversalBudgetTests.Run(Check);
+ConfigurationInspectionTests.Run(Check);
+ConfiguredBindingTests.Run(Check, root);
 var actualReports = new List<object>();
 foreach (var (filename, id, count, pages, scripts, hash, fingerprint, font) in new[]
 {
@@ -151,6 +153,12 @@ foreach (var (filename, id, count, pages, scripts, hash, fingerprint, font) in n
     Check(input.Sha256 == hash, "normalization leaves source snapshot immutable " + filename);
     actualReports.Add(new { filename, report.Sha256, report.TerminalFieldCount, report.WidgetCount, report.StructureFingerprintV1, report.Xfa, report.Signatures, report.CatalogJavaScriptCount, bound.Bound });
 }
+GenericRenderingParameterTests.Run(Check, root);
+ConfiguredRenderingParameterTests.Run(Check, root);
+ConfiguredBundledFontTests.Run(Check);
+GenericRenderingParameterTests.RunExtensions(Check, root);
+ConfiguredBundledFontTests.RunExtensions(Check, root);
+ConfiguredBundledFontTests.RunPreservedDefaultCorrection(Check, root);
 Console.WriteLine(JsonSerializer.Serialize(new { status = "passed", assertions, actualTemplates = actualReports }, new JsonSerializerOptions { WriteIndented = true }));
 return;
 

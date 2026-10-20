@@ -9,3 +9,9 @@ The generated AcroForm, field and widget defaults and populated appearances must
 Checkboxes use reviewed resource-free vector marks rather than a viewer-substituted mark font. Unsupported clipping, opacity, transformations, unknown paint operators and unexpected active content fail the bounded verifier.
 
 Publication status and filing status are separate. A create-new artifact may be committed before diagnostic output fails. Preserve and inspect the caller-requested destination on an uncertain result. Force replacement and whole-job output remain disabled.
+
+## Configured AcroForms in the generic draft
+
+The generic path adds an immutable `FormConfigurationSnapshot` preparation overload. Supported policy is `configured-acroform-v1` with `none-v1` normalization: it does not perform the built-in IRS cleanup on arbitrary PDFs. Each configured field binds the observed resource, geometry, size and declared layout. Text uses either a supported preserved embedded TrueType/WinAnsi source or the explicit bundled Liberation Serif ASCII-plus-É strategy; checkbox policies are bounded vector marks. Unsupported active content, signatures, XFA, field types or malformed resources remain refusals.
+
+Closed-readback checks include serialized field/widget default appearance and font resources even for blank fields, plus policy-specific AcroForm checks, populated appearance paint and fixed geometry. The preserved-font strategy intentionally leaves shared AcroForm defaults unchanged; its explicit field/widget resources select the admitted fonts. Both editable and flattened output retain the same create-new verification boundary. These are implemented source checks; the generic integration and new-form visual checkpoint remain pending. See [configuration workflow](GENERIC-ONBOARDING.md).

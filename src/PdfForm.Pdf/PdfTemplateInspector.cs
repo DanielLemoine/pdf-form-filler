@@ -16,7 +16,7 @@ namespace PdfForm.Pdf;
 /// JavaScript name trees have separate 30,000-node-visit and 30,000-name-entry budgets, including empty nodes.
 /// These are traversal limits, not a universal PDF-object ceiling; outline and engine limits remain separate.
 /// </remarks>
-public sealed class PdfTemplateInspector
+public sealed partial class PdfTemplateInspector
 {
     private const int MaximumNodes = 30_000;
     private readonly int maximumTraversalEntries;
@@ -54,7 +54,9 @@ public sealed class PdfTemplateInspector
         public List<PdfDictionary> Widgets { get; } = [];
     }
 
-    public TemplateInspection Inspect(TemplateSnapshot snapshot)
+    public TemplateInspection Inspect(TemplateSnapshot snapshot) => InspectCore(snapshot, null);
+
+    private TemplateInspection InspectCore(TemplateSnapshot snapshot, ConfigurationInspectionSession? session)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         try
@@ -67,13 +69,14 @@ public sealed class PdfTemplateInspector
             using var reader = new PdfReader(input, new ReaderProperties().SetMemoryLimitsAwareHandler(memory));
             using var pdf = new PdfDocument(reader);
             if (reader.IsEncrypted()) return Failure(snapshot, "E_PDF_ENCRYPTED", true);
-            return InspectDocument(snapshot, pdf, maximumTraversalEntries);
+            return InspectDocument(snapshot, pdf, maximumTraversalEntries, session);
         }
         catch (iText.Kernel.Exceptions.BadPasswordException) { return Failure(snapshot, "E_PDF_ENCRYPTED", true); }
         catch (Exception e) when (e is not OutOfMemoryException and not StackOverflowException)
         {
             // PDF parser exceptions can contain arbitrary strings from the PDF. Never echo them.
-            return Failure(snapshot, e is InspectionLimitException or iText.Kernel.Exceptions.MemoryLimitsAwareException ? "E_PDF_LIMIT" : "E_PDF_PARSE");
+            return Failure(snapshot, e is ConfigurationFontStructureException ? "E_CONFIG_FONT_STRUCTURE"
+                : e is InspectionLimitException or iText.Kernel.Exceptions.MemoryLimitsAwareException ? "E_PDF_LIMIT" : "E_PDF_PARSE");
         }
     }
     private sealed class BoundedMemoryHandler : MemoryLimitsAwareHandler
@@ -88,12 +91,14 @@ public sealed class PdfTemplateInspector
         Findings = [new(code, "binding", "PDF cannot be inspected within the supported boundary.")]
     };
 
-    private static TemplateInspection InspectDocument(TemplateSnapshot snapshot, PdfDocument pdf, int maximumTraversalEntries)
+    private static TemplateInspection InspectDocument(TemplateSnapshot snapshot, PdfDocument pdf, int maximumTraversalEntries,
+        ConfigurationInspectionSession? session = null)
     {
         var findings = new List<Finding>();
         void Error(string code, string message) => findings.Add(new(code, "binding", message));
-        var approved = ApprovedTemplates.Find(snapshot.Sha256);
-        bool trustedNames = approved is not null;
+        // External configurations never inherit the IRS script/XFA/usage-rights exceptions.
+        var approved = session?.ExternalConfiguration == true ? null : ApprovedTemplates.Find(snapshot.Sha256);
+        bool trustedNames = approved is not null || session is not null;
         int pageCount = pdf.GetNumberOfPages();
         if (pageCount > Limits.MaxTemplatePages) throw new InspectionLimitException();
         var catalog = pdf.GetCatalog().GetPdfObject();
@@ -160,7 +165,7 @@ public sealed class PdfTemplateInspector
             if (Inherited(node, "FT", af) is null)
             { Error("E_FIELD_TYPE", "A terminal field has no effective field type."); }
             if (fields.Count >= Limits.MaxKeysOrTargets) throw new InspectionLimitException();
-            var field = new FieldNode(node, name, $"field-{fields.Count + 1:D4}");
+            var field = new FieldNode(node, name, session is null ? $"field-{fields.Count + 1:D4}" : ConfigurationFieldKey(name));
             if (IsWidget(node)) field.Widgets.Add(node);
             field.Widgets.AddRange(widgets);
             foreach (var widget in field.Widgets)
@@ -231,6 +236,8 @@ public sealed class PdfTemplateInspector
             reports.Add(report);
             if (field.Name.Length == 0 || !named.TryAdd(field.Name, report)) Error("E_FIELD_NAME", "Canonical field names are missing or duplicated.");
             fingerprintRows.Add((field.Name, type, widgets.FirstOrDefault()?.Page, attributes.MaxLength, attributes.Flags.Comb, allOn.ToArray()));
+            if (session is not null)
+                CollectConfigurationField(session, field, report, af, findings);
         }
         void ValidateAttributes(PdfDictionary node)
         {
@@ -248,6 +255,7 @@ public sealed class PdfTemplateInspector
             if (!canonicalWidgets.ContainsKey(id)) orphans.Add(Widget(pw.Widget, $"orphan-{++orphanId:D4}", pw.Page, af, false, "pageWithoutCanonicalField"));
         if (orphans.Count > 0) Error("E_ORPHAN_WIDGET", "Page widgets are absent from the canonical terminal-field tree.");
         var xfa = InspectXfa(af, approved, needsRendering, findings);
+        if (session is not null) ObserveConfigurationDatasets(session, af, findings);
         var signatures = InspectSignatures(pdf, af, catalog, fields, approved);
         if (signatures.ApprovalSignatureCount > 0) Error("E_APPROVAL_SIGNATURE", "Existing approval signatures are unsupported.");
         if (signatures.CertificationPresent) Error("E_CERTIFICATION", "Certification or DocMDP permissions are unsupported.");
@@ -267,13 +275,21 @@ public sealed class PdfTemplateInspector
             findings.Add(new("W_FONT_NOT_EMBEDDED", "binding", "An effective font lacks an embedded program; portable appearance qualification remains required.", Severity: "warning"));
         if (reports.Any(f => f.Type == "checkbox" && f.Widgets.Any(w => !w.HasNormalOffAppearance)))
             findings.Add(new("W_NORMAL_OFF_MISSING", "binding", "Checkboxes require reviewed normal Off appearance generation before filling.", Severity: "warning"));
+        if (session is not null)
+        {
+            session.Title = pdf.GetDocumentInfo().GetTitle() ?? "";
+            CheckConfigurationGeometryAndCapabilities(session, reports, pdf, findings);
+            ValidateObservedConfiguration(session, snapshot, pageCount, Fingerprint(fingerprintRows), findings);
+        }
         var capabilities = Capabilities(reports, xfa, signatures, actions, embedded).ToList();
         capabilities.Add(new("active.catalogJavaScript", catalogScripts == 0 ? "absent" : catalogJavaScript.ApprovedRemovalRequired ? "approved_removal_only" : "unsupported", catalogScripts, "EXACT_TEMPLATE_SCRIPT_EXCEPTION_ONLY"));
         return new TemplateInspection
         {
             Sha256 = snapshot.Sha256, Bytes = snapshot.ByteCount, Pages = pageCount, HasAcroForm = af is not null, CatalogJavaScript = catalogJavaScript,
-            ExactApprovedTemplate = approved is not null, ApprovedTemplateId = approved?.Id, ApprovedTitle = approved?.Title,
-            ActualTitle = pdf.GetDocumentInfo().GetTitle(), StructureFingerprintV1 = Fingerprint(fingerprintRows),
+            ExactApprovedTemplate = approved is not null || session is { ExternalConfiguration: true, Admitted: true } && findings.All(f => f.Severity != "error"),
+            ApprovedTemplateId = approved?.Id ?? session?.ProfileId, ApprovedTitle = approved?.Title,
+            ActualTitle = session is null ? pdf.GetDocumentInfo().GetTitle() : session.Title,
+            StructureFingerprintV1 = Fingerprint(fingerprintRows),
             NeedAppearances = needAppearances, NeedsRendering = needsRendering, Xfa = xfa, Signatures = signatures,
             Fields = reports.AsReadOnly(), OrphanWidgets = orphans.AsReadOnly(), NamedFields = named,
             Capabilities = capabilities, Findings = findings.AsReadOnly(), InitialStructureSupported = findings.All(f => f.Severity != "error")

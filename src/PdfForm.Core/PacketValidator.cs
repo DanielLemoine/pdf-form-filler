@@ -56,9 +56,12 @@ public static class PacketValidator
         void Error(string code, string message, string? key = null) => findings.Add(new(code, "packet", message, key));
         if (!reports.TryGetValue("941", out var form)) { Error("E_PACKET_INPUT", "Form 941 validation is required."); return findings.ToArray(); }
         if (reports.Count != job.Documents.Length || job.Documents.Any(x => !reports.ContainsKey(x.Alias))) Error("E_PACKET_INPUT", "Validated document set does not match the job.");
+        if (reports.Values.Any(r => r.Profile.Schema != "pdfform.profile/2" || r.Data.Schema != "pdfform.data/2" || r.Data.Context is null))
+        { Error("E_PACKET_INPUT", "IRS packet validation requires version-2 documents with filing context."); return findings.ToArray(); }
+        var formContext = form.Data.Context!;
         if (form.Profile.Id != "irs-941") Error("E_PACKET_PROFILE", "Form alias is bound to the wrong profile.");
         bool hasSchedule = reports.TryGetValue("941sb", out var schedule);
-        if ((form.Data.Context.LiabilityReporting == "semiweekly") != hasSchedule) Error("E_PACKET_SCHEDULE_B", "Schedule B must be present exactly for semiweekly reporting.");
+        if ((formContext.LiabilityReporting == "semiweekly") != hasSchedule) Error("E_PACKET_SCHEDULE_B", "Schedule B must be present exactly for semiweekly reporting.");
         if (!hasSchedule) return findings.ToArray();
         if (schedule!.Profile.Id != "irs-941sb") Error("E_PACKET_PROFILE", "Schedule B alias is bound to the wrong profile.");
         if (form.Data.Context != schedule.Data.Context) Error("E_PACKET_CONTEXT", "Document filing contexts do not agree.");
@@ -75,6 +78,8 @@ public static class PacketValidator
     {
         var findings = new List<Finding>();
         var context = schedule.Data.Context;
+        if (schedule.Profile.Schema != "pdfform.profile/2" || schedule.Data.Schema != "pdfform.data/2" || context is null)
+            return [new("E_PACKET_CONTEXT", "packet", "IRS calendar validation requires version-2 filing context.")];
         int year = int.Parse(context.TaxYear, CultureInfo.InvariantCulture);
         int firstMonth = (int.Parse(context.Quarter, CultureInfo.InvariantCulture) - 1) * 3 + 1;
         for (int month = 1; month <= 3; month++)

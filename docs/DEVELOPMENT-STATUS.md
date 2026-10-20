@@ -16,13 +16,19 @@ The corrected cut passed a bounded 288-dpi review of 12 PDFs and 28 rendered pag
 
 This supports the selected synthetic specimens and fixed font in those two renderer versions. It does not establish Windows/Adobe behavior, arbitrary-viewer equivalence, viewer editing/reset, physical printing or filing readiness. Exact bitmap equality between renderers is not claimed.
 
-## Configuration-only form onboarding is pending
+## Generic catalog integration: pending checkpoint
 
-Mappings and validation rules are profile-driven, but the integrated two-form engine still uses compiled trusted registration and form-specific presentation policies. Core catalog work and consumer integration are being tested separately. A new supported form cannot yet be claimed addable solely by configuration without rebuilding the engine. No such claim follows from the embedded-font or Core-only results.
+This draft contains the reviewed Core catalog contracts, PDF discovery/binding/rendering policies, CLI authoring and catalog commands, and create-new configuration publication. The two built-in identities remain unchanged. A third form's identity is present only in test-side fixture source, never in the production registry.
+
+Two narrow fixture corrections are included: explicit PDF `/Off` name construction for the installed library API, and post-close MemoryStream.ToArray readback for finalized serialization. The corrected focused build passed. The inspector then stopped at the first configured bundled-font positive assertion, at 1 pt; the returned diagnostic cause has not yet been observed. A bounded value-free diagnostic run is being prepared before any product correction. Core has passed 202 checks in this development line. The broader inspector/renderer/CLI/publication/migration checkpoint remains incomplete; earlier interrupted and failed attempts do not count as passes.
+
+Prospective counts are Core 202, inspector 543, renderer 149, CLI 91, publication 313 Linux / 379 Windows and nine migration comparisons. The separate third-form generator mode does not change ordinary CLI counts and has not been invoked for end-to-end acceptance. Before that acceptance, freeze the complete built production CLI closure, then introduce a new synthetic blank form and reviewed configuration, and run check/configure/save/sample/editable/flattened flows without changing any frozen engine bytes. Human draft review is mandatory.
+
+The external catalog path is implemented development source; configuration-only onboarding is not yet end-to-end qualified. Generic visual acceptance, Windows viewer editing/reset, physical printing and filing readiness remain open. The embedded-font two-form results above apply only to their exact earlier cut.
 
 ## Scope boundaries
 
-Only the exact reviewed template/profile byte pairs are admitted for filling. Runtime trust enrollment, mismatch bypass, arbitrary templates, force replacement and complete job/packet publication are unavailable. Data-level packet consistency APIs do not imply the disabled `run` command is implemented. Filing readiness stays `not_assessed`.
+The legacy profile path admits its exact reviewed template/profile pairs. The new catalog path requires a reviewed exact-byte package and independently observed supported PDF structure. Neither path permits hash mismatch overrides, unsupported-feature enrollment, force replacement or complete job/packet publication. Data-level packet consistency APIs do not imply the disabled `run` command is implemented. Filing readiness stays `not_assessed`.
 
 Create-new checks preserve known existing destinations. Detected identity substitutions and unknown stage entries cause refusal at the corresponding checks. Stronger post-check hostile namespace races, interruption/recovery qualification and platform-specific durability remain outside the accepted boundary. A committed PDF can remain after diagnostic-output failure; preserve and inspect the requested destination rather than assume rollback.
 

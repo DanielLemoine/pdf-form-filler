@@ -15,23 +15,24 @@ public static class ProfileParser
 
     public static ParseResult<ProfileDefinition> ParseProfile(ReadOnlySpan<byte> bytes)
     {
-        var parsed = StrictJson.Parse<ProfileDefinition>(bytes, "profile");
+        bool generic = HasSchema(bytes, "pdfform.profile/3");
+        var parsed = generic ? ParseGeneric(bytes) : StrictJson.Parse<ProfileDefinition>(bytes, "profile");
         if (!parsed.IsValid) return parsed;
         var p = parsed.Value!;
         var findings = new List<Finding>();
         void Error(string code, string message, string? key = null, string? rule = null) => findings.Add(new(code, "profile", message, key, RuleId: rule));
         bool Nonempty(string? value) => !string.IsNullOrWhiteSpace(value);
         bool Unique(IEnumerable<string> values) => values.Distinct(StringComparer.Ordinal).Count() == values.Count();
-        if (p.Schema != "pdfform.profile/2") Error("E_PROFILE_SCHEMA", "Profile schema must be pdfform.profile/2.");
+        if (p.Schema != (generic ? "pdfform.profile/3" : "pdfform.profile/2")) Error("E_PROFILE_SCHEMA", "Profile schema must be pdfform.profile/2 or pdfform.profile/3.");
         if (!SafeName(p.Id) || !SafeName(p.Revision) || p.ProfileVersion <= 0 || !Nonempty(p.Title))
             Error("E_PROFILE_IDENTITY", "Profile identity and version are invalid.");
         if (p.Template.Sha256Allowlist.Length == 0 || !Unique(p.Template.Sha256Allowlist) || p.Template.Sha256Allowlist.Any(x => !Match(x, "[0-9a-f]{64}")))
             Error("E_TEMPLATE_ALLOWLIST", "Template allowlist must contain unique lowercase SHA-256 hashes.");
-        if (!Nonempty(p.Template.Title) || p.Template.PageCount is < 1 or > Limits.MaxTemplatePages || !Match(p.Template.StructureFingerprintV1, "sha256:[0-9a-f]{64}"))
+        if ((!generic && !Nonempty(p.Template.Title)) || p.Template.PageCount is < 1 or > Limits.MaxTemplatePages || !Match(p.Template.StructureFingerprintV1, "sha256:[0-9a-f]{64}"))
             Error("E_TEMPLATE_CONTRACT", "Template title, page count or fingerprint is invalid.");
-        if (!Unique(p.Capabilities) || p.Capabilities.Any(x => x is not ("text.singleWidget" or "checkbox.singleWidget" or "xfa.staticHybrid")))
+        if (!Unique(p.Capabilities) || p.Capabilities.Any(x => x is not ("text.singleWidget" or "checkbox.singleWidget" or "xfa.staticHybrid") || generic && x == "xfa.staticHybrid"))
             Error("E_PROFILE_CAPABILITY", "Profile declares an unsupported or duplicate capability.");
-        if (p.FilingYears.Length == 0 || !Unique(p.FilingYears) || p.FilingYears.Any(x => !Match(x, "[0-9]{4}") || x == "0000"))
+        if (!generic && (p.FilingYears.Length == 0 || !Unique(p.FilingYears) || p.FilingYears.Any(x => !Match(x, "[0-9]{4}") || x == "0000")))
             Error("E_PROFILE_YEARS", "Supported filing years must be distinct four-digit Gregorian years.");
         if (p.Options.ZeroAmounts is not ("blank" or "show")) Error("E_PROFILE_ZERO", "Zero display policy is invalid.");
         if (p.Unmapped.Length != 0) Error("E_PROFILE_UNMAPPED", "The initial profile contract requires complete target ownership.");
@@ -123,7 +124,7 @@ public static class ProfileParser
                 if ((w.Key is null) == (w.Context is null)) Error("E_PROFILE_CONDITION", "Condition must select exactly one key or context member.", rule: rid);
                 else if (w.Context is { } context)
                 {
-                    if (w.EqualsValue.ValueKind != JsonValueKind.String || !ValidContextValue(context, w.EqualsValue.GetString()!))
+                    if (generic || w.EqualsValue.ValueKind != JsonValueKind.String || !ValidContextValue(context, w.EqualsValue.GetString()!))
                         Error("E_PROFILE_CONDITION", "Context condition literal is invalid.", rule: rid);
                 }
                 else if (!Ref(w.Key)) Error("E_PROFILE_CONDITION", "Condition references an undeclared key.", rule: rid);
@@ -136,7 +137,55 @@ public static class ProfileParser
                 }
             }
         }
+        if (generic && findings.Count == 0)
+        {
+            if (p.SyntheticSamples.Count > Limits.MaxKeysOrTargets) Error("E_PROFILE_SAMPLE_HINT", "Synthetic sample hints exceed the key bound.");
+            foreach (var hint in p.SyntheticSamples)
+                if (!keyMap.TryGetValue(hint.Key, out var key) || hint.Value.ValueKind is not (JsonValueKind.String or JsonValueKind.True or JsonValueKind.False)
+                    || !ValueNormalizer.Normalize(key, hint.Value, true).Value.IsValid)
+                    Error("E_PROFILE_SAMPLE_HINT", "A synthetic sample hint must match a declared key and its supported normalized type.");
+        }
         return new(findings.Count == 0 ? p : null, findings.AsReadOnly());
+    }
+    private static ParseResult<ProfileDefinition> ParseGeneric(ReadOnlySpan<byte> bytes)
+    {
+        var result = StrictJson.Parse<GenericProfileDocument>(bytes, "profile");
+        if (!result.IsValid) return new(null, result.Findings);
+        var p = result.Value!;
+        return new(new ProfileDefinition
+        {
+            Schema = p.Schema, Id = p.Id, Revision = p.Revision, ProfileVersion = p.ProfileVersion, Title = p.Title,
+            Template = p.Template, Capabilities = p.Capabilities, FilingYears = [], Options = p.Options, Keys = p.Keys,
+            Rules = p.Rules, Unmapped = p.Unmapped, Source = p.Source, Extensions = p.Extensions,
+            SyntheticSamples = p.SampleHints ?? new(StringComparer.Ordinal)
+        }, []);
+    }
+
+    /// <summary>Version dispatch only. StrictJson still performs all syntax/duplicate/null/Unicode checks on the chosen wire DTO.</summary>
+    internal static bool HasSchema(ReadOnlySpan<byte> bytes, string schema)
+    {
+        if (bytes.Length > Limits.MaxJsonBytes) return false;
+        if (bytes.StartsWith(new byte[] { 0xEF, 0xBB, 0xBF })) bytes = bytes[3..];
+        try
+        {
+            using var raw = JsonDocument.Parse(bytes.ToArray(), new JsonDocumentOptions { MaxDepth = Limits.MaxDepth });
+            return raw.RootElement.ValueKind == JsonValueKind.Object && raw.RootElement.TryGetProperty("schema", out var value)
+                && value.ValueKind == JsonValueKind.String && value.GetString() == schema;
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or ArgumentException or System.Text.DecoderFallbackException) { return false; }
+    }
+
+    /// <summary>Emit the correct versioned profile envelope, without tax members in a context-free profile.</summary>
+    public static byte[] SerializeProfile(ProfileDefinition profile)
+    {
+        if (profile.Schema != "pdfform.profile/3") return JsonSerializer.SerializeToUtf8Bytes(profile, StrictJson.Options);
+        return JsonSerializer.SerializeToUtf8Bytes(new GenericProfileDocument
+        {
+            Schema = profile.Schema, Id = profile.Id, Revision = profile.Revision, ProfileVersion = profile.ProfileVersion, Title = profile.Title,
+            Template = profile.Template, Capabilities = profile.Capabilities, Options = profile.Options, Keys = profile.Keys,
+            Rules = profile.Rules, Unmapped = profile.Unmapped, Source = profile.Source, Extensions = profile.Extensions,
+            SampleHints = profile.SyntheticSamples.Count == 0 ? null : profile.SyntheticSamples
+        }, StrictJson.Options);
     }
     internal static bool Match(string value, string pattern) => Regex.IsMatch(value, "\\A(?:" + pattern + ")\\z", RegexOptions.CultureInvariant, Limits.RegexTimeout);
     internal static bool SafeName(string value) => Match(value, "[A-Za-z0-9][A-Za-z0-9._-]{0,127}");

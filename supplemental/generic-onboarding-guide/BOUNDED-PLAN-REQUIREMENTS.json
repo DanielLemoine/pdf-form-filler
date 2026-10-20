@@ -1,0 +1,127 @@
+{
+  "schema": "pdfform.onboarding-source-plan-requirements/1",
+  "status": "SOURCE_ADAPTER_AUTHORED_AWAITING_ROOT_REVIEW_AND_FINAL_PINS",
+  "executionAuthorized": false,
+  "entryPointBehavior": "Dispatch to the already loaded exact finite workflow module with live root admission; no automatic imports or new process framework.",
+  "pinsRequired": [
+    "exact entry script and assertion module",
+    "persistent launcher, driver, existing strict parser/completion validator and oracle assembly",
+    "independently frozen complete CLI/runtime closure before third-form introduction",
+    "external runtime files actually resolved and launcher/tool sidecars",
+    "fixture generator and approved font bytes",
+    "independent inspect/render/viewer executables and complete tool dependencies",
+    "approved blank, reviewed draft inventory, synthetic input and independent freeze evidence"
+  ],
+  "rootOwnedAdapterMustImplementAndReview": {
+    "persistentSingleSession": true,
+    "noRawProcessOrShellFallback": true,
+    "noUnknownLiveProcessContinuation": true,
+    "processTimeoutMs": 60000,
+    "terminationGraceMs": 5000,
+    "captureGraceMs": 2000,
+    "minimumRemainingBeforeLaunchMs": 67000,
+    "wholeSessionDeadlineMs": 600000,
+    "processPrivateMemoryMaximumBytes": 536870912,
+    "captureMaximumBytesPerPipe": 1048576,
+    "parsedReceiptMaximumBytes": 262144,
+    "maximumAttemptApparentBytes": 2147483648,
+    "maximumAttemptAllocatedBytes": 2147483648,
+    "minimumCallerAvailableFreeBytes": 12884901888,
+    "maximumInventoryEntries": 32768,
+    "maximumInventoryDirectories": 8192,
+    "maximumInventoryDepth": 24,
+    "maximumAbsolutePathCharacters": 220,
+    "maximumInventoryContentReadBytes": 268435456,
+    "maximumInventoryFingerprintBytes": 4194304,
+    "maximumFrozenProductFileBytes": 1073741824,
+    "maximumPdfBytes": 4194304,
+    "maximumJsonPayloadBytes": 1048576,
+    "maximumRasterPagesPerPdf": 64,
+    "maximumRasterWidthPixels": 4096,
+    "maximumRasterHeightPixels": 4096,
+    "maximumRasterDecodedBytesPerPage": 67108864,
+    "maximumRasterAggregateBytes": 268435456,
+    "maximumRasterEnumeratedEntries": 256,
+    "minimumUnknownOrExceededLimitOutcome": "stop_without_success_or_retry"
+  },
+  "capStatus": "Existing v5 provides unchanged60+5+2 process bounds and1MiB pipes; existing oracle provides bounded domain accounting. Root must supply actual inherited native memory admission. Renderer/viewer caps apply only to separately admitted later plans; this six-slot adapter launches neither.",
+  "freezeEvidence": {
+    "contractOwner": "task11",
+    "types": [
+      "EngineFreeze",
+      "FileImage",
+      "DriverTerminal.FirstFixtureSequence"
+    ],
+    "independentPinAndOwnerRequired": true,
+    "freezeMustPrecedeFixtureGenerationCopyAndConfigurationIntroduction": true,
+    "disjointNativeRoots": [
+      "bundle",
+      "fixtures",
+      "configuration",
+      "evidence"
+    ],
+    "currentRunOnlyHashIsInsufficient": true
+  },
+  "protectedLedgerLifecycle": [
+    "Create expected pins from independent original approvals or original validated publication descriptors.",
+    "Copies retain original source lengths/hashes; pin their independently observed new native identities without replacing expected content hashes.",
+    "Before each CLI/inspect/render/viewer operation, boundedly reobserve the full frozen closure and complete current protected ledger.",
+    "After each operation reaches observed terminal settlement, reobserve every protected input, copied input, receipt and prior output, including the current output against its original receipt.",
+    "After each acceptance-relevant copy/read, preserve/reobserve original and copied pins and inventories.",
+    "Before accepting another operation and at failure/final settlement, require the complete protected set and frozen closure again.",
+    "After inspect/render/viewer operations, never replace an original PDF receipt hash with a newly computed expected hash.",
+    "Unknown termination, capture, metadata, enumeration, resource accounting or custody prevents final success."
+  ],
+  "manualObservationLabelsUntilActuallyObserved": {
+    "status": "manual_review_required",
+    "perFieldWidgetVerification": "not_observed",
+    "visualAcceptance": "not_observed",
+    "editableSaveReopen": "not_observed"
+  },
+  "fixedPlan": {
+    "slots": [
+      "go-check",
+      "go-configure",
+      "go-save-config",
+      "go-sample-input",
+      "go-fill-editable",
+      "go-fill-flattened"
+    ],
+    "exits": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "allRemainingReservationMsPerSlot": 67000,
+    "finalSettlementReservationMs": 10000,
+    "maximumClockMs": 600000,
+    "dynamicCommandsAllowed": false
+  },
+  "reviewRevision": "r3-public-wire-final-envelopes-report-privacy-and-draft-provenance",
+  "diagnosticReportBounds": {
+    "maximumReports": 64,
+    "aggregateRawBytes": 8388608,
+    "jsonReportBytes": 262144,
+    "rawTextBytes": 1048576,
+    "decodedDepth": 24,
+    "decodedNodes": 16384,
+    "decodedStringCharacters": 1048576,
+    "tokens": 512,
+    "tokenCharacters": 65536,
+    "charactersPerToken": 4096,
+    "recheckAfterGeneratedValues": true,
+    "intentionalExportsScreenedAsLogs": false
+  },
+  "reviewedDraftGate": {
+    "requiredPinForContinuation": "reviewed-draft-provenance",
+    "schema": "pdfform.reviewed-draft-provenance/1",
+    "bothCurrentConfigureDescriptorsMustMatchApprovedSourceDraft": true,
+    "editedBytesMayDifferFromUneditedDraft": true,
+    "missingCut": "stop after configure with configuration_needed1; complete=false",
+    "mismatch": "refuse before copying",
+    "newApprovalService": false
+  }
+}

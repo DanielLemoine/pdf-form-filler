@@ -4,6 +4,10 @@ using System.Text.Json.Nodes;
 using System.Security.Cryptography;
 using PdfForm.Cli;
 
+// Explicit fixture mode exits before ordinary harness setup or writes.
+if (PdfForm.StandaloneSyntheticFixtures.FixtureTestMode.TryHandle(args, Console.Out, out int fixtureExitCode))
+    return fixtureExitCode;
+
 string root = Path.GetFullPath(args.Single());
 string temp = Path.Combine(root, "evidence", "cli", "inputs-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(temp);
@@ -115,5 +119,10 @@ foreach (bool flatten in new[] { false, true }) Test("fill stock Schedule B outp
     foreach (string input in inputs)
         Assert(inputHashes[input] == Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(input))));
 });
+PdfForm.Cli.Tests.GenericOnboardingCases.Register(Test);
+PdfForm.Cli.Tests.ConfigurationPublicationCases.Register(Test);
+PdfForm.Cli.Tests.ConfigurationArtifactCases.Register(Test);
+PdfForm.Cli.Tests.CompatibilityProjectionCases.Register(Test);
+PdfForm.Cli.Tests.OnboardingWorkflowCases.Register(Test);
 Console.WriteLine($"RESULT passed={passed} failed={failed}");return failed==0?0:1;
 sealed class BrokenWriter:TextWriter{public override Encoding Encoding=>Encoding.UTF8;public override void WriteLine(string? value)=>throw new IOException("PRIVATE_EXCEPTION_SENTINEL");}

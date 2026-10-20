@@ -2,11 +2,13 @@
 
 An offline .NET command-line tool in development for the exact reviewed Form 941 (March 2026) and Schedule B (March 2024) PDF templates. It validates supplied values and creates new editable or flattened PDFs. It does not calculate tax or file returns.
 
-**Development checkpoint:** The embedded-font Schedule B correction passed Linux regression checks and a selected two-viewer visual review. Ordinary names, printable ASCII plus É, and the current Form 941 date/checkbox details were checked in Poppler and MuPDF. The earlier unembedded-font visual failure remains part of the project history. Windows qualification and configuration-only form onboarding are still pending. See [development status](docs/DEVELOPMENT-STATUS.md).
+**Development checkpoint:** The earlier embedded-font two-form cut passed Linux regression and selected Poppler/MuPDF visual checks. This draft adds an external, hash-bound catalog/profile workflow for supported AcroForms. Its source review is complete; the integrated generic test checkpoint and unchanged-engine third-form acceptance are still pending. Earlier two-form results do not qualify the new generic path. See [development status](docs/DEVELOPMENT-STATUS.md).
 
-## Adding forms: current limitation
+## Adding a form by configuration
 
-Mappings and validation rules are profile-driven, but current trusted profile/template registration is compiled into the engine for the two bundled forms. Adding a supported form currently requires source changes and rebuilding; configuration-only onboarding is **not implemented**. An external hash-bound form catalog and its inspector/renderer/CLI integration are pending requirements. Arbitrary profile/template bytes cannot opt themselves into trusted filling.
+The draft now includes `check`, `configure`, operator review, `save-config`, `sample-input`, and catalog-based validation/filling. A saved package binds exact template and profile bytes to implemented font/layout/checkbox policies; it does not add a form identity to the compiled registry. The two bundled IRS profiles remain available through their existing `--profile` path.
+
+See the [configuration workflow](docs/GENERIC-ONBOARDING.md). Configuration cannot implement unsupported PDF features or waive independent inspection, glyph, fit, appearance or publication checks. Configuration-only onboarding is an implemented development path whose end-to-end acceptance is pending, not a completed supported-form guarantee.
 
 ## Build from source
 
@@ -17,7 +19,7 @@ dotnet restore PdfForm.slnx --locked-mode --configfile NuGet.Config --disable-pa
 dotnet build PdfForm.slnx --no-restore --disable-build-servers -m:1 -nodeReuse:false -p:BuildInParallel=false -p:UseSharedCompilation=false
 ```
 
-This repository contains source, not a runtime or binary distribution. Restore needs network access to the configured official feed; the application itself works offline. Do not silently regenerate lockfiles on a locked-restore error. A clean-room restore/build of this curated source layout remains to be checked; the unchanged code was built and tested in its development tree.
+This repository contains source, not a runtime or binary distribution. Restore needs network access to the configured official feed; the application itself works offline. Do not silently regenerate lockfiles on a locked-restore error. A clean-room restore/build of this curated layout and the complete generic integration checkpoint remain pending. The retained two-form checkpoint applies to its earlier exact source cut.
 
 On Bash, `tools/dotnet-env.sh` can isolate writable SDK/NuGet state under `.runtime`. Set `PDFFORM_DOTNET_ROOT` to an existing SDK directory, source the file from the repository root, and invoke `"$PDFFORM_DOTNET_ROOT/dotnet"` explicitly. Setting DOTNET_ROOT does not choose an executable from PATH. Also set `XDG_STATE_HOME="$PWD/.runtime/state"` and `NUGET_PLUGINS_CACHE_PATH="$PWD/.runtime/nuget-plugins"` if those variables are present in your environment. No SDK download is performed by the helper.
 
@@ -63,11 +65,9 @@ python3 tools/check_migration.py
 
 Use a new final renderer directory for each attempt. The publication harness accepts exactly one existing fully qualified parent, creates its own unique attempt, and emits a terminal receipt. An exit code alone does not replace reviewing that receipt. Windows test paths should be fully qualified and meet the local fixed-NTFS/no-reparse contract. The old convenience shell wrapper is intentionally omitted because its root-admission behavior is stale.
 
-The embedded-font development cut's Linux checks passed: Core 142, inspector 147, renderer 149 and CLI 45, with nine deterministic migration artifact comparisons. The 244-case publication result was reused only after comparing its complete seven-file runtime output with the prior passing run. A separate visual check covered 12 PDFs and 28 rendered pages in Poppler 26.05.0 and MuPDF 1.26.11; all 2,388 recorded checks and independent inspection of four contact sheets passed within that selected scope. Harness counts and visual checks are distinct evidence. Windows, Adobe, viewer editing/reset and physical-print qualification remain open. Optional Python appearance scripts need separately installed pypdf/PyMuPDF/rasterizer tooling; that optional environment is not a supported pinned reproduction recipe.
+The preserved embedded-font checkpoint passed Core 142, inspector 147, renderer 149, CLI 45 and nine migration comparisons. Its separate active publication result was 244 Linux cases. The current generic source has prospective counts of Core 202, inspector 543, renderer 149, CLI 91 and publication 313 on Linux / 379 on Windows, plus nine migration comparisons. These are registered source counts, not a report that the complete new suite passed. See [development status](docs/DEVELOPMENT-STATUS.md) for the current boundary.
 
-## Supplemental golden publication tests
-
-The [separate golden test overlay](supplemental/publication-golden/README.md) provides its two reviewed source leaves, four synthetic oracle fixtures and exact rebuild pins. It is deliberately outside the active projects. Its separate 254-case Linux result does not replace the main 244-case harness or imply a new full-solution/CLI run.
+The [historical golden publication overlay](supplemental/publication-golden/README.md) still targets its exact earlier commit and does not apply to the current generic harness. The [supplemental onboarding guide assertions](supplemental/generic-onboarding-guide/README.md) are separate test-side source with external Windows integration dependencies; they are not part of the solution's ordinary harness counts.
 
 ## License and third-party material
 

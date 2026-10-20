@@ -1,4 +1,5 @@
 using System.Text;
+using System.Globalization;
 using iText.Forms;
 using iText.Forms.Fields;
 using iText.IO.Font;
@@ -9,10 +10,11 @@ using static PdfForm.Pdf.VerifiedFormRenderer;
 
 namespace PdfForm.Pdf;
 
-/// <summary>One explicit, bundled asset for the exact Schedule B template. No font discovery or fallback.</summary>
+/// <summary>Shared pinned font for reviewed Schedule B and explicitly configured text. No font discovery or fallback.</summary>
 internal static class ScheduleBEmbeddedFont
 {
     internal const string Policy = "schedule-b-liberation-serif-ascii-v1";
+    internal const string ConfiguredPolicy = "bundled-liberation-serif-ascii-v1";
     internal const string Name = "LiberationSerif";
     internal const string ProgramSha256 = "9caef765d2e891c10dd73658894f01e660fe0c1c83e0bda7d6edf561d8f623d4";
     internal const int ProgramBytes = 393692;
@@ -23,6 +25,7 @@ internal static class ScheduleBEmbeddedFont
     private static readonly Lazy<Seed> Materialized = new(CreateSeed);
     private sealed record Seed(byte[] Bytes, FontProgram Program, string Metrics);
     internal static bool Supports(int codepoint) => codepoint is >= 0x20 and <= 0x7e or 0x00c9;
+    internal static bool IsReplacementPolicy(string policy) => policy is Policy or ConfiguredPolicy;
     internal static string Repertoire => string.Concat(Enumerable.Range(32, 95).Select(char.ConvertFromUtf32)) + "É";
 
     /// <summary>Owned by one authoring document. The imported font graph is shared by all 208 text fields.</summary>
@@ -30,9 +33,13 @@ internal static class ScheduleBEmbeddedFont
     {
         private PdfFont? font;
         private NativeFontWitness? witness;
-        internal PdfFont Get(PdfDocument owner, out NativeFontWitness observed)
+        internal PdfFont Get(PdfDocument owner, out NativeFontWitness observed,
+            float size = NativeTextAppearance.FontSize, string policy = Policy)
         {
             Require(ReferenceEquals(document, owner), "E_FONT_DOCUMENT", "A font cannot be reused across authoring documents.");
+            Require(float.IsFinite(size) && size is >= 1 and <= 72 && IsReplacementPolicy(policy)
+                && (policy != Policy || size == NativeTextAppearance.FontSize),
+                "E_FONT_FIXED_SIZE", "The bundled font requires its explicit supported policy and fixed point size.", 3);
             if (font is null)
             {
                 var seed = Materialized.Value;
@@ -46,9 +53,9 @@ internal static class ScheduleBEmbeddedFont
                 CheckProgram(font, seed.Program);
                 Require(NativeTextAppearance.MetricsDigest(imported) == seed.Metrics,
                     "E_FONT_IMPORT", "Imported bundled font metrics differ from their materialized identity.");
-                witness = new(Name, seed.Metrics, ProgramSha256, seed.Program, false, Policy);
+                witness = new(Name, seed.Metrics, ProgramSha256, seed.Program, false, Policy: Policy);
             }
-            observed = witness!;
+            observed = witness! with { Size = size, Policy = policy };
             return font;
         }
     }
@@ -107,7 +114,15 @@ internal static class ScheduleBEmbeddedFont
         }
     }
 
-    internal static void SetDefaults(PdfDocument pdf, PdfFormField field, PdfFont font)
+    private static string LocalDefaultAppearance(float size)
+    {
+        Require(float.IsFinite(size) && size is >= 1 and <= 72,
+            "E_FONT_FIXED_SIZE", "The bundled font requires an explicit fixed point size.", 3);
+        return "/PdfFormScheduleB " + size.ToString("0.#########", CultureInfo.InvariantCulture) + " Tf 0 g";
+    }
+
+    internal static void SetDefaults(PdfDocument pdf, PdfFormField field, PdfFont font,
+        float size = NativeTextAppearance.FontSize)
     {
         var acro = PdfAcroForm.GetAcroForm(pdf, false)!.GetPdfObject();
         var resources = acro.GetAsDictionary(PdfName.DR) ?? new PdfDictionary();
@@ -119,7 +134,7 @@ internal static class ScheduleBEmbeddedFont
         var localResources = new PdfDictionary(); localResources.Put(PdfName.Font, localFonts);
         foreach (var node in new[] { field.GetPdfObject(), field.GetWidgets()[0].GetPdfObject() })
         {
-            node.Put(PdfName.DA, new PdfString(DefaultAppearance));
+            node.Put(PdfName.DA, new PdfString(LocalDefaultAppearance(size)));
             node.Put(PdfName.DR, localResources);
         }
     }
@@ -128,13 +143,16 @@ internal static class ScheduleBEmbeddedFont
     internal static PdfDictionary VerifyDefaults(PdfDocument pdf, PdfFormField field, NativeFontWitness witness,
         NativeTextAppearance.VerificationContext context)
     {
-        Require(witness.Policy == Policy && witness.Name == Name && witness.EmbeddedDigest == ProgramSha256,
-            "E_VERIFY_FONT_POLICY", "The Schedule B output-font policy is inconsistent.");
+        Require(IsReplacementPolicy(witness.Policy) && witness.Name == Name && witness.EmbeddedDigest == ProgramSha256
+            && float.IsFinite(witness.Size) && witness.Size is >= 1 and <= 72
+            && (witness.Policy != Policy || witness.Size == NativeTextAppearance.FontSize),
+            "E_VERIFY_FONT_POLICY", "The explicit bundled output-font policy is inconsistent.");
         var acro = PdfAcroForm.GetAcroForm(pdf, false)!.GetPdfObject();
         PdfDictionary? expected = null;
         foreach (var node in new[] { acro, field.GetPdfObject(), field.GetWidgets()[0].GetPdfObject() })
         {
-            Require(node.GetAsString(PdfName.DA)?.ToUnicodeString() == DefaultAppearance,
+            string expectedAppearance = ReferenceEquals(node, acro) ? DefaultAppearance : LocalDefaultAppearance(witness.Size);
+            Require(node.GetAsString(PdfName.DA)?.ToUnicodeString() == expectedAppearance,
                 "E_VERIFY_FIELD_FONT_DEFAULT", "An editable default appearance differs from the explicit font policy.");
             var dictionary = node.GetAsDictionary(PdfName.DR)?.GetAsDictionary(PdfName.Font)?.GetAsDictionary(ResourceName);
             Require(dictionary is not null, "E_VERIFY_FIELD_FONT_RESOURCE", "An editable default font resource is missing.");

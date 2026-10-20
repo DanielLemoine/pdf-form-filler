@@ -64,9 +64,23 @@ public static partial class CliApplication
         {
             if (arguments.Length == 0 || arguments.SequenceEqual(new[] { "--help" })) return new(0, Help);
             if (arguments.SequenceEqual(new[] { "--version" })) return new(0, JsonSerializer.Serialize(Tool, StrictJson.Options));
-            if (arguments.Length > 32 || arguments.Any(a => a.Length > 4096)) { Error("E_ARGUMENTS", "syntax", "Argument count or length limit exceeded."); return Result(2, "input_error"); }
+            if (arguments.Length > 32 || arguments.Any(a => a.Length > 4096))
+            {
+                var logicalArguments = arguments.Where(a => a != "--verbose").ToArray();
+                var selected = CliOnboardingArguments.Parse(logicalArguments);
+                if (selected.Handled) return OnboardingArgumentFailure(logicalArguments[0],
+                    new(true, null, 2, "invalid", new("E_ARGUMENTS", "syntax", "Argument count or length limit exceeded.")));
+                Error("E_ARGUMENTS", "syntax", "Argument count or length limit exceeded."); return Result(2, "input_error");
+            }
             var args = arguments.Where(a => a != "--verbose").ToArray();
             if (args.Length == 0) return new(0, Help);
+            var onboarding = CliOnboardingArguments.Parse(args);
+            if (onboarding.Handled && onboarding.Request is null) return OnboardingArgumentFailure(args[0], onboarding);
+            if (onboarding.Request is { Operation: not CliOnboardingOperation.CatalogFill } request)
+            {
+                var routed = TryExecuteOnboarding(request);
+                if (routed is not null) return routed;
+            }
             operation = args[0] is "validate" or "inspect" or "check-profile" or "fill" or "run" or "read" or "diff" or "describe" or "template" ? args[0] : "unknown";
             if (operation is not ("validate" or "inspect" or "check-profile" or "fill"))
             { Error("E_COMMAND_UNSUPPORTED", "syntax", "This command is not implemented by this development slice."); return Result(2, "input_error"); }
@@ -180,9 +194,15 @@ public static partial class CliApplication
         pdfform development slice
 
         inspect <pdf>
+        check <pdf> [--catalog <catalog.json>]
+        configure <pdf> --out <new-draft-directory>
+        save-config <pdf> --draft <draft-directory> --out <new-package-directory> --reviewed
         check-profile <pdf> <profile>
         validate --profile <profile> --data <data> [--pdf <pdf>]
+        validate --catalog <catalog.json> --data <data> [--pdf <pdf>]
         fill <pdf> --profile <profile> --data <data> --out <new-pdf> [--flatten]
+        fill <pdf> --catalog <catalog.json> --data <data> --out <new-pdf> [--flatten]
+        sample-input --catalog <catalog.json> --out <new-data.json>
         --help | --version
 
         JSON diagnostics are written to stdout. --verbose does not expose field values.

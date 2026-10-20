@@ -2,11 +2,11 @@
 
 This directory supplies corresponding source for the separately built golden publication test harness. It contains the two reviewed test leaves and four frozen, independently authored synthetic fixture documents. The artifact payloads are 32-byte synthetic sequences, not real PDFs or taxpayer data. The helper embeds exact fixture bytes and independent expected hashes; the four raw files preserve the external oracle for inspection.
 
-**This is not merged into the main solution source.** The main publication harness retains 244 observed Linux cases and 310 prospective Windows cases. Applying this overlay adds 10 common tests: external-package recovery plus under/exact/over actual-total, result-cap and completion-cap controls. The separate overlay run observed 254 passing Linux cases. Its 320-case Windows selection was prospective at this source handoff; no Windows pass or new whole-CLI build is claimed here.
+**Historical corresponding source, not merged into the current generic solution.** Its matching earlier main harness had 244 observed Linux cases and 310 prospective Windows cases. Applying this overlay adds 10 common tests: external-package recovery plus under/exact/over actual-total, result-cap and completion-cap controls. The separate overlay run observed 254 passing Linux cases. Its 320-case Windows selection was prospective at this source handoff; no Windows pass or new whole-CLI build is claimed here.
 
 ## Exact rebuild in a separate checkout
 
-Use a separate clean checkout of the same source commit, not the main checkout whose results you intend to preserve. From its repository root, compare the 19 preimage inputs in `BASE-SHA256SUMS` first:
+Use a separate clean checkout of the exact historical commit `aebffa8b39024d4a9491fae07e480fe585eb2b0c` (tree `6dce6bc2028065aa18e226745cead0db2b51af9d`). The current generic CompletionProtocol and main harness have changed, so the overlay must not be applied to current HEAD. From the historical checkout root, compare all 19 preimage inputs in `BASE-SHA256SUMS` first:
 
 ```sh
 sha256sum -c supplemental/publication-golden/BASE-SHA256SUMS

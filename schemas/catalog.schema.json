@@ -1,0 +1,373 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "pdfform.catalog/1"
+    },
+    "template": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "const": "template.pdf"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52428800
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "const": "profile.json"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10485760
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "profileVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "id",
+        "revision",
+        "profileVersion"
+      ],
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "enum": [
+            "draft",
+            "reviewed"
+          ]
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+              },
+              "capability": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+              },
+              "fieldId": {
+                "type": "string",
+                "pattern": "^field_[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "code",
+              "capability"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "state",
+        "unresolved"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "reviewed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unresolved": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "enum": [
+            "configured-acroform-v1",
+            "builtin-irs-941-v1",
+            "builtin-irs-941sb-embedded-v1"
+          ]
+        },
+        "normalization": {
+          "enum": [
+            "none-v1",
+            "reviewed-irs-static-hybrid-v1"
+          ]
+        },
+        "textFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
+              "page": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "rectangle": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "strategy": {
+                "enum": [
+                  "preserve-embedded-simple-v1",
+                  "bundled-liberation-serif-ascii-v1"
+                ]
+              },
+              "resourceName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
+              "baseFont": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
+              "subtype": {
+                "enum": [
+                  "Type1",
+                  "TrueType"
+                ]
+              },
+              "encoding": {
+                "enum": [
+                  "WinAnsiEncoding",
+                  "absent"
+                ]
+              },
+              "fontSize": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 72
+              },
+              "programSha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "metricsSha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "repertoire": {
+                "enum": [
+                  "encoded-font-v1",
+                  "ascii-plus-eacute-v1"
+                ]
+              },
+              "layout": {
+                "enum": [
+                  "single-line-v1",
+                  "eight-date-cells-v1"
+                ]
+              }
+            },
+            "required": [
+              "target",
+              "page",
+              "rectangle",
+              "strategy",
+              "resourceName",
+              "baseFont",
+              "subtype",
+              "encoding",
+              "fontSize",
+              "metricsSha256",
+              "repertoire",
+              "layout"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "strategy": {
+                      "const": "preserve-embedded-simple-v1"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "programSha256"
+                  ],
+                  "properties": {
+                    "subtype": {
+                      "const": "TrueType"
+                    },
+                    "encoding": {
+                      "const": "WinAnsiEncoding"
+                    },
+                    "repertoire": {
+                      "const": "encoded-font-v1"
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "repertoire": {
+                      "const": "ascii-plus-eacute-v1"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 10000
+        },
+        "checkboxFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024
+              },
+              "page": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "rectangle": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "onState": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1024,
+                "not": {
+                  "const": "Off"
+                }
+              },
+              "mark": {
+                "enum": [
+                  "cross-10-v1",
+                  "circle-12-v1"
+                ]
+              }
+            },
+            "required": [
+              "target",
+              "page",
+              "rectangle",
+              "onState",
+              "mark"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "id",
+        "normalization",
+        "textFields",
+        "checkboxFields"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "configured-acroform-v1"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "normalization": {
+                "const": "none-v1"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "normalization": {
+                "const": "reviewed-irs-static-hybrid-v1"
+              },
+              "textFields": {
+                "maxItems": 0
+              },
+              "checkboxFields": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "template",
+    "profile",
+    "review",
+    "policy"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:catalog:1"
+}

@@ -10,6 +10,13 @@ internal enum CheckboxMark { Cross, Circle }
 /// <summary>Reviewed resource-free marks for 28 exact-template targets, not a general checkbox style API.</summary>
 internal static class VectorCheckboxAppearance
 {
+    internal static CheckboxMark ResolveConfiguredMark(string token) => token switch
+    {
+        "cross-10-v1" => CheckboxMark.Cross,
+        "circle-12-v1" => CheckboxMark.Circle,
+        _ => throw new VerifiedFillException("E_CHECKBOX_VECTOR_STRATEGY", "The configured checkbox mark is unsupported.", 3)
+    };
+
     private sealed record Target(string On, int Page, CheckboxMark Mark);
     private static readonly IReadOnlyDictionary<string, Target> Form941Targets = Form941();
     private static readonly IReadOnlyDictionary<string, Target> ScheduleBTargets = Enumerable.Range(0, 4)
@@ -30,8 +37,36 @@ internal static class VectorCheckboxAppearance
         return target.Mark;
     }
 
+    // Generic entry consumes already parsed, exact target facts from the sealed
+    // configuration. Supported painting families remain the reviewed 10x10
+    // cross and 12x12 circle; no geometry scaling or inferred mark is allowed.
+    internal static CheckboxMark ResolveBound(string templateSha256, string configuredTemplateSha256,
+        string field, string configuredTarget, string on, string configuredOn, int configuredPage,
+        IReadOnlyList<double> configuredRectangle, WidgetInspection widget, CheckboxMark mark)
+    {
+        Require(templateSha256 == configuredTemplateSha256 && field == configuredTarget && on == configuredOn
+            && !string.IsNullOrEmpty(on) && on != "Off" && configuredPage > 0 && widget.Page == configuredPage
+            && widget.OnStates.Contains(on, StringComparer.Ordinal)
+            && configuredRectangle.Count == 4 && configuredRectangle.All(double.IsFinite)
+            && widget.Rectangle.SequenceEqual(configuredRectangle),
+            "E_CHECKBOX_VECTOR_SCOPE", "Checkbox policy does not match the exact template, target, state, page and rectangle.", 3);
+        RequireSupportedGeometry(widget, mark);
+        return mark;
+    }
+
+    internal static void RequireSupportedGeometry(WidgetInspection widget, CheckboxMark mark)
+    {
+        double size = mark == CheckboxMark.Circle ? 12 : 10;
+        Require(mark is CheckboxMark.Cross or CheckboxMark.Circle && widget.GeometryValid && widget.Rotation == 0
+            && widget.Rectangle.Count == 4 && widget.Rectangle.All(double.IsFinite)
+            && Math.Abs(widget.Rectangle[2] - widget.Rectangle[0] - size) < .002
+            && Math.Abs(widget.Rectangle[3] - widget.Rectangle[1] - size) < .002,
+            "E_CHECKBOX_VECTOR_GEOMETRY", "Only the reviewed 10x10 cross and 12x12 circle geometries are supported.", 3);
+    }
+
     internal static PdfStream Create(WidgetInspection widget, CheckboxMark mark, bool on)
     {
+        RequireSupportedGeometry(widget, mark);
         // Literal authoring is deliberately separate from semantic command/operand verification below.
         string content = !on ? "q\nQ\n" : mark == CheckboxMark.Cross
             ? "q\n0 G\n0 g\n1.25 w\n0 J\n0 j\n2 2 m\n8 8 l\nS\n2 8 m\n8 2 l\nS\nQ\n"

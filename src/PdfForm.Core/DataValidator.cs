@@ -7,14 +7,27 @@ public static class DataValidator
 {
     public static ParseResult<DataDocument> ParseData(ReadOnlySpan<byte> bytes)
     {
-        var parsed = StrictJson.Parse<DataDocument>(bytes, "data");
+        bool generic = ProfileParser.HasSchema(bytes, "pdfform.data/3");
+        ParseResult<DataDocument> parsed;
+        if (generic)
+        {
+            var wire = StrictJson.Parse<GenericDataDocument>(bytes, "data");
+            if (!wire.IsValid) parsed = new(null, wire.Findings);
+            else
+            {
+                var value = wire.Value!;
+                parsed = new(new DataDocument
+                { Schema = value.Schema, Profile = value.Profile, Context = null, Values = value.Values, Extensions = value.Extensions }, []);
+            }
+        }
+        else parsed = StrictJson.Parse<DataDocument>(bytes, "data");
         if (!parsed.IsValid) return parsed;
         var d = parsed.Value!;
         var errors = new List<Finding>();
         void Error(string code, string message) => errors.Add(new(code, "syntax", message));
-        if (d.Schema != "pdfform.data/2") Error("E_DATA_SCHEMA", "Data schema must be pdfform.data/2.");
+        if (d.Schema != (generic ? "pdfform.data/3" : "pdfform.data/2")) Error("E_DATA_SCHEMA", "Data schema must be pdfform.data/2 or pdfform.data/3.");
         if (!ProfileParser.Match(d.Profile, "[A-Za-z0-9][A-Za-z0-9._-]{0,127}@[A-Za-z0-9][A-Za-z0-9._-]{0,127}")) Error("E_DATA_PROFILE", "Data profile identity is invalid.");
-        if (!ProfileParser.ValidContextValue("taxYear", d.Context.TaxYear) || !ProfileParser.ValidContextValue("quarter", d.Context.Quarter) || !ProfileParser.ValidContextValue("liabilityReporting", d.Context.LiabilityReporting)) Error("E_CONTEXT", "Filing context is missing or invalid.");
+        if (!generic && (d.Context is null || !ProfileParser.ValidContextValue("taxYear", d.Context.TaxYear) || !ProfileParser.ValidContextValue("quarter", d.Context.Quarter) || !ProfileParser.ValidContextValue("liabilityReporting", d.Context.LiabilityReporting))) Error("E_CONTEXT", "Filing context is missing or invalid.");
         if (d.Values.Count > Limits.MaxKeysOrTargets) Error("E_DATA_LIMIT", "Data exceeds the value count limit.");
         if (d.Values.Values.Any(v => v.ValueKind is not (JsonValueKind.String or JsonValueKind.True or JsonValueKind.False))) Error("E_VALUE_TYPE", "Data values must use string or Boolean tokens.");
         if (d.Extensions.ValueKind is not (JsonValueKind.Undefined or JsonValueKind.Object)) Error("E_EXTENSIONS", "Extensions must be an object.");
@@ -28,7 +41,14 @@ public static class DataValidator
         var evaluations = new List<RuleEvaluation>();
         void Error(string code, string message, string? key = null) => findings.Add(new(code, "data", message, key));
         if (data.Profile != profile.Identity) Error("E_PROFILE_IDENTITY", "Data and profile identities do not agree.");
-        if (!profile.FilingYears.Contains(data.Context.TaxYear, StringComparer.Ordinal)) Error("E_FILING_YEAR", "Filing year is outside the profile's approved scope.");
+        bool generic = profile.Schema == "pdfform.profile/3";
+        if (data.Schema != (generic ? "pdfform.data/3" : "pdfform.data/2"))
+            Error("E_DATA_SCHEMA_PAIR", "Profile and data envelope versions do not agree.");
+        if (generic ? data.Context is not null : data.Context is null)
+            Error("E_CONTEXT", "Context presence does not match the selected profile version.");
+        if (findings.Any(f => f.Code is "E_DATA_SCHEMA_PAIR" or "E_CONTEXT"))
+            return new(profile, data, values, findings.ToArray(), evaluations.ToArray());
+        if (!generic && !profile.FilingYears.Contains(data.Context!.TaxYear, StringComparer.Ordinal)) Error("E_FILING_YEAR", "Filing year is outside the profile's approved scope.");
         var definitions = profile.Keys.ToDictionary(k => k.Key, StringComparer.Ordinal);
         foreach (string unknown in data.Values.Keys.Where(k => !definitions.ContainsKey(k)))
         { _ = unknown; Error("E_UNKNOWN_KEY", "Data contains an undeclared key."); }
@@ -54,12 +74,12 @@ public static class DataValidator
             findings.AddRange(evaluated.Findings);
             evaluations.Add(new(rule.Id, evaluated.State));
         }
-        ValidateInitialContext(profile, data.Context, values, findings);
+        if (!generic) ValidateInitialContext(profile, data.Context!, values, findings);
         return new(profile, data, values, findings.ToArray(), evaluations.ToArray());
     }
 
     public static (IReadOnlyList<Finding> Findings, string State) EvaluateRule(RuleDefinition rule,
-        IReadOnlyDictionary<string, KeyDefinition> definitions, IReadOnlyDictionary<string, NormalizedValue> values, FilingContext context,
+        IReadOnlyDictionary<string, KeyDefinition> definitions, IReadOnlyDictionary<string, NormalizedValue> values, FilingContext? context,
         IReadOnlySet<string>? failedRequiredKeys = null)
     {
         var local = new List<Finding>();
@@ -68,6 +88,7 @@ public static class DataValidator
         {
             if (when.Context is { } contextKey)
             {
+                if (context is null) { Error("E_CONTEXT", "A context condition cannot run for context-free data."); return (local.AsReadOnly(), "skipped_invalid_operand"); }
                 string actual = contextKey switch { "taxYear" => context.TaxYear, "quarter" => context.Quarter, _ => context.LiabilityReporting };
                 if (actual != when.EqualsValue.GetString()) return (Array.Empty<Finding>(), "inactive");
             }

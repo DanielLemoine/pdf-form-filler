@@ -1,4 +1,6 @@
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using PdfForm.Core;
 using PdfForm.Publication;
@@ -27,7 +29,7 @@ public sealed class VerifiedFillResult
 }
 
 /// <summary>
-/// Trusted-profile, immutable-input fill boundary. Only the explicit bundled Schedule B font replacement; no fallback selection, profile enrollment, force replacement,
+/// Immutable-input fill boundary. Only explicit pinned font replacement; no fallback selection, profile enrollment, force replacement,
 /// runtime downloads, source-file recycling or external actions. This is not viewer, host, print or filing qualification.
 /// </summary>
 public static class VerifiedFillPipeline
@@ -46,9 +48,93 @@ public static class VerifiedFillPipeline
         catch { return Failure(4, "E_FILL_INTERNAL", "render", "Fill preparation failed without publication."); }
     }
 
+    public static VerifiedFillResult Prepare(TemplateSnapshot template, FormConfigurationSnapshot configuration,
+        ReadOnlySpan<byte> dataJson, bool flatten)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (!template.MatchesConfiguration(configuration))
+        {
+            var levels = VerifiedFillResult.NewLevels(); levels["binding"] = "failed";
+            return new(3, "unsupported", [new("E_TEMPLATE_PROFILE", "binding", "Configuration is bound to different template bytes.")],
+                new Dictionary<string, long>(), levels: levels);
+        }
+        try
+        {
+            var result = PrepareCore(template, configuration.ParseProfile(), dataJson, flatten, configuration);
+            return new(result.ExitCode, result.Status, SafeFindings(result.Findings), result.Stats,
+                result.Candidate, result.ValidationLevels);
+        }
+        catch { return Failure(4, "E_FILL_INTERNAL", "render", "Configured fill preparation failed without publication."); }
+    }
+
+    /// <summary>Advisory per-key normalization and mapped-target fit only. No cross-key rule, completed form or publication claim.</summary>
+    public static IReadOnlyList<Finding> CheckValueFit(TemplateSnapshot template, FormConfigurationSnapshot configuration,
+        string key, JsonElement value)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        ArgumentNullException.ThrowIfNull(configuration);
+        try
+        {
+            if (!template.MatchesConfiguration(configuration)) return [new("E_TEMPLATE_PROFILE", "binding", "Configuration is bound to different template bytes.")];
+            var profile = configuration.ParseProfile();
+            var definition = profile.Keys.SingleOrDefault(item => item.Key == key);
+            if (definition is null) return [new("E_FIT_KEY", "data", "The logical input key is absent from the configured profile.")];
+            if (value.ValueKind == JsonValueKind.String && value.GetString()!.Length > Limits.MaxTextScalars * 2)
+                return [new("E_TEXT_LIMIT", "data", "Value exceeds the supported scalar length limit.", Key: DiagnosticFieldId(key))];
+            var normalized = ValueNormalizer.Normalize(definition, value, supplied: true);
+            if (!normalized.Value.IsValid) return SafeFindings(normalized.Findings);
+            var bound = new TemplateBinder().Bind(template, configuration);
+            if (!bound.Bound) return SafeFindings(bound.Findings);
+            // Reuse the canonical formatter/planner for split, money, date and
+            // oneOf targets. The scratch report is never a data-validation result.
+            var focusedProfile = profile with { Keys = [definition], Rules = [], Unmapped = [] };
+            var scratch = new DataDocument { Schema = "pdfform.data/3", Profile = profile.Identity,
+                Context = null, Values = new(StringComparer.Ordinal) { [key] = value.Clone() } };
+            var report = new ValidationReport(focusedProfile, scratch,
+                new Dictionary<string, NormalizedValue>(StringComparer.Ordinal) { [key] = normalized.Value }, [], []);
+            var assignments = AssignmentPlanner.Build(report);
+            VerifiedFormRenderer.CheckConfiguredFit(template, configuration, bound, assignments);
+            return [];
+        }
+        catch (VerifiedFillException error)
+        {
+            return SafeFindings([new(error.Code, error.ExitCode == 3 ? "binding" : "render", "Configured target fit was refused.",
+                Field: error.ApprovedField)]);
+        }
+        catch (TemplateInputException) { return [new("E_FILL_TEMPLATE", "binding", "The configured template is unsupported.")]; }
+        catch { return [new("E_FIT_INTERNAL", "render", "Configured fit assessment could not be completed.")]; }
+    }
+
+    /// <summary>Full sample validation and exact editable-appearance verification; returns findings only and publishes nothing.</summary>
+    public static IReadOnlyList<Finding> CheckSampleFit(TemplateSnapshot template, FormConfigurationSnapshot configuration,
+        ReadOnlySpan<byte> dataJson) => Prepare(template, configuration, dataJson, flatten: false).Findings;
+
+    internal static string DiagnosticFieldId(string value) => "field_" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+
+    private static IReadOnlyList<Finding> SafeFindings(IEnumerable<Finding> findings)
+    {
+        static string? Identifier(string? value) => value is null ? null
+            : value.Length == 70 && value.StartsWith("field_", StringComparison.Ordinal)
+                && value.Skip(6).All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f') ? value : DiagnosticFieldId(value);
+        return findings.Select(finding => new Finding(finding.Code, finding.Stage,
+            finding.Code switch
+            {
+                "W_FONT_EXPLICIT_REPLACEMENT" => "Configured output deliberately uses bundled embedded Liberation Serif Regular at the fixed source size; only printable ASCII and U+00C9 are admitted. Viewer and filing acceptance remain separate.",
+                "E_TEXT_OVERFLOW" or "E_TEXT_COMB_OVERFLOW" or "E_TEXT_VERTICAL_OVERFLOW" => "The supplied value does not fit at the configured fixed size.",
+                "E_FONT_GLYPH" or "E_FONT_GLYPH_UNQUALIFIED" => "A supplied character is outside the supported font repertoire.",
+                "W_ACCEPTANCE_NOT_COMPLETE" => "Structural rendering checks do not establish viewer, print or filing acceptance.",
+                _ => "The configured operation reported this fixed diagnostic."
+            }, Identifier(finding.Key), Identifier(finding.Field), Identifier(finding.RuleId),
+            finding.Severity == "warning" ? "warning" : "error")).ToArray();
+    }
+
     /// <summary>Source-internal engine fixture seam. It still requires exact reviewed blank bytes, complete binding and valid data.</summary>
     internal static VerifiedFillResult PrepareCore(TemplateSnapshot template, ProfileDefinition profile,
-        ReadOnlySpan<byte> dataJson, bool flatten)
+        ReadOnlySpan<byte> dataJson, bool flatten) => PrepareCore(template, profile, dataJson, flatten, null);
+
+    private static VerifiedFillResult PrepareCore(TemplateSnapshot template, ProfileDefinition profile,
+        ReadOnlySpan<byte> dataJson, bool flatten, FormConfigurationSnapshot? configuration)
     {
         var findings = new List<Finding>();
         var stats = new Dictionary<string, long>();
@@ -58,7 +144,7 @@ public static class VerifiedFillPipeline
             var parsed = DataValidator.ParseData(dataJson);
             if (!parsed.IsValid) { levels["syntax"] = "failed"; return new(2, "input_error", parsed.Findings, stats, levels: levels); }
             levels["syntax"] = "passed";
-            var bound = new TemplateBinder().Bind(template, profile);
+            var bound = configuration is null ? new TemplateBinder().Bind(template, profile) : new TemplateBinder().Bind(template, configuration);
             findings.AddRange(bound.Findings);
             if (!bound.Bound) { levels["bindingStructure"] = "failed"; levels["binding"] = "failed"; return new(3, "unsupported", findings.AsReadOnly(), stats, levels: levels); }
             levels["bindingStructure"] = "passed";
@@ -70,7 +156,8 @@ public static class VerifiedFillPipeline
             stats["targetsExpected"] = assignments.Count;
             stats["targetsCleared"] = assignments.Count(x => x.IsClear);
             stats["targetsSet"] = assignments.Count(x => !x.IsClear);
-            var candidate = VerifiedFormRenderer.Render(template, profile, bound, assignments, flatten);
+            var candidate = configuration is null ? VerifiedFormRenderer.Render(template, profile, bound, assignments, flatten)
+                : VerifiedFormRenderer.Render(template, configuration, bound, assignments, flatten);
             levels["binding"] = "passed";
             levels["render"] = "passed";
             if (candidate.UsesNativeCheckboxAppearances)
@@ -81,7 +168,7 @@ public static class VerifiedFillPipeline
                     "Bounded private output preserves the exact unembedded native font and only evidenced glyphs; actual font outlines and cross-viewer portability remain unqualified.", Severity: "warning"));
             if (candidate.UsesExplicitEmbeddedFont)
                 findings.Add(new("W_FONT_EXPLICIT_REPLACEMENT", "render",
-                    "Schedule B deliberately replaces the source TimesLTStd-Roman text resource with bundled embedded Liberation Serif Regular at 10 points; only printable ASCII and U+00C9 are admitted. This is not a viewer or filing qualification.", Severity: "warning"));
+                    "Output deliberately replaces the admitted source text resource with bundled embedded Liberation Serif Regular at its fixed size; only printable ASCII and U+00C9 are admitted. This is not a viewer or filing qualification.", Severity: "warning"));
             stats["targetsVerified"] = assignments.Count;
             stats["normalAppearancesVerified"] = assignments.Count;
             stats["pagesVerified"] = bound.Inspection.Pages;
@@ -135,7 +222,7 @@ internal sealed class VerifiedFillCandidate
     internal bool Flattened { get; }
     internal bool UsesNativeCheckboxAppearances => manifest.Targets.Values.Any(t => t.Assignment.Kind == "checkbox" && t.CheckboxMark is null);
     internal bool UsesPrivateUnembeddedFont => manifest.Targets.Values.Any(t => t.Font?.PrivateUnembeddedException == true);
-    internal bool UsesExplicitEmbeddedFont => manifest.Targets.Values.Any(t => t.Font?.Policy == ScheduleBEmbeddedFont.Policy);
+    internal bool UsesExplicitEmbeddedFont => manifest.Targets.Values.Any(t => t.Font is { } font && ScheduleBEmbeddedFont.IsReplacementPolicy(font.Policy));
     internal CandidateArtifact Artifact(string id, string path) => new(id, path, bytes, Verify);
     internal RenderManifest ManifestForFixture => manifest;
     internal byte[] CopyForFixture() => bytes.ToArray();

@@ -1,11 +1,47 @@
 using iText.Forms;
 using iText.Kernel.Pdf;
+using PdfForm.Core;
 
 namespace PdfForm.Pdf;
 
 /// <summary>Narrow normalization factory for the two immutable approved blanks. Does not fill, flatten, execute or publish.</summary>
 public static class ApprovedTemplateNormalizer
 {
+    /// <summary>Configured clean AcroForms use no normalization exceptions or active-content removal.</summary>
+    public static PdfDocument OpenForNormalization(TemplateSnapshot snapshot, Stream output, FormConfigurationSnapshot configuration)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (!snapshot.MatchesConfiguration(configuration)) throw new TemplateInputException("E_CONFIGURATION_TEMPLATE");
+        if (configuration.IsBuiltIn) return OpenForNormalization(snapshot, output);
+        var binding = new TemplateBinder().Bind(snapshot, configuration);
+        var inspection = binding.Inspection;
+        if (!binding.Bound || !inspection.ExactApprovedTemplate || !inspection.InitialStructureSupported || inspection.Xfa.Present
+            || inspection.CatalogJavaScriptCount != 0 || inspection.Signatures.ApprovalSignatureCount != 0
+            || inspection.Signatures.CertificationPresent || inspection.Signatures.UsageRightsSignatureCount != 0
+            || inspection.Signatures.UnknownPermissionEntry)
+            throw new TemplateInputException("E_NORMALIZATION_UNAPPROVED");
+        var limits = new ConfigurationNormalizationLimits();
+        limits.SetMaxSizeOfSingleDecompressedPdfStream(10 * 1024 * 1024);
+        limits.SetMaxSizeOfDecompressedPdfStreamsSum(50 * 1024 * 1024);
+        limits.SetMaxNumberOfElementsInXrefStructure(100_000);
+        var pdf = new PdfDocument(new PdfReader(snapshot.OpenRead(), new ReaderProperties().SetMemoryLimitsAwareHandler(limits)), new PdfWriter(output));
+        try
+        {
+            pdf.SetFlushUnusedObjects(false);
+            _ = PdfAcroForm.GetAcroForm(pdf, false) ?? throw new TemplateInputException("E_NORMALIZATION_FORM");
+            return pdf;
+        }
+        catch { pdf.Close(); throw; }
+    }
+
+    private sealed class ConfigurationNormalizationLimits : MemoryLimitsAwareHandler
+    {
+        [Obsolete("Compatibility override for the pinned engine; every decoded stream remains bounded.")]
+        public override bool IsMemoryLimitsAwarenessRequiredOnDecompression(PdfArray filters) => true;
+    }
+
     public static PdfDocument OpenForNormalization(TemplateSnapshot snapshot, Stream output)
     {
         ArgumentNullException.ThrowIfNull(snapshot);

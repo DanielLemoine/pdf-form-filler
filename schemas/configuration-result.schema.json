@@ -1,0 +1,653 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "pdfform.configuration-result/1"
+    },
+    "operation": {
+      "enum": [
+        "configure",
+        "save-config"
+      ]
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "input_error",
+        "validation_failed",
+        "configuration_needed",
+        "unsupported",
+        "internal_error"
+      ]
+    },
+    "exitCode": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "artifactState": {
+      "enum": [
+        "none",
+        "staged",
+        "published",
+        "unknown"
+      ]
+    },
+    "validationLevels": {
+      "type": "object",
+      "properties": {
+        "syntax": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed"
+          ]
+        },
+        "profile": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed"
+          ]
+        },
+        "binding": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed"
+          ]
+        },
+        "bindingStructure": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed"
+          ]
+        },
+        "data": {
+          "const": "not_run"
+        },
+        "packet": {
+          "const": "not_run"
+        },
+        "render": {
+          "const": "not_run"
+        }
+      },
+      "required": [
+        "syntax",
+        "profile",
+        "binding",
+        "bindingStructure",
+        "data",
+        "packet",
+        "render"
+      ],
+      "additionalProperties": false
+    },
+    "template": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "const": "template.pdf"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52428800
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "const": "profile.json"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10485760
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "profileVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "id",
+        "revision",
+        "profileVersion"
+      ],
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "enum": [
+              "catalog",
+              "profile",
+              "template"
+            ]
+          },
+          "path": {
+            "enum": [
+              "catalog.json",
+              "profile.json",
+              "template.pdf"
+            ]
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 52428800
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "id": {
+                  "const": "catalog"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "path": {
+                  "const": "catalog.json"
+                },
+                "bytes": {
+                  "maximum": 10485760
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "id": {
+                  "const": "profile"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "path": {
+                  "const": "profile.json"
+                },
+                "bytes": {
+                  "maximum": 10485760
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "id": {
+                  "const": "template"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "path": {
+                  "const": "template.pdf"
+                },
+                "bytes": {
+                  "maximum": 52428800
+                }
+              }
+            }
+          }
+        ]
+      },
+      "maxItems": 3
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "stage": {
+            "enum": [
+              "syntax",
+              "profile",
+              "data",
+              "binding",
+              "packet",
+              "render",
+              "publication",
+              "internal"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "field": {
+            "type": "string",
+            "pattern": "^field_[0-9a-f]{64}$"
+          },
+          "ruleId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "severity": {
+            "const": "error"
+          }
+        },
+        "required": [
+          "code",
+          "stage",
+          "message",
+          "severity"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 1000
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "stage": {
+            "enum": [
+              "syntax",
+              "profile",
+              "data",
+              "binding",
+              "packet",
+              "render",
+              "publication",
+              "internal"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "field": {
+            "type": "string",
+            "pattern": "^field_[0-9a-f]{64}$"
+          },
+          "ruleId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "severity": {
+            "const": "warning"
+          }
+        },
+        "required": [
+          "code",
+          "stage",
+          "message",
+          "severity"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 1000
+    },
+    "filingReadiness": {
+      "const": "not_assessed"
+    }
+  },
+  "required": [
+    "schema",
+    "operation",
+    "status",
+    "exitCode",
+    "artifactState",
+    "validationLevels",
+    "outputs",
+    "errors",
+    "warnings",
+    "filingReadiness"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ok"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "validation_failed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "configuration_needed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "input_error"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 2
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "unsupported"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 3
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "internal_error"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exitCode": {
+            "const": 4
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ok"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "artifactState": {
+            "const": "published"
+          },
+          "errors": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "errors": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifactState": {
+            "const": "published"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "template",
+          "profile"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "internal_error"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "operation": {
+                  "const": "configure"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputs": {
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "properties": {
+                          "id": {
+                            "const": "catalog"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "properties": {
+                          "id": {
+                            "const": "profile"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "outputs": {
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "properties": {
+                          "id": {
+                            "const": "catalog"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "properties": {
+                          "id": {
+                            "const": "profile"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "properties": {
+                          "id": {
+                            "const": "template"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "else": {
+        "properties": {
+          "outputs": {
+            "maxItems": 0
+          },
+          "status": {
+            "not": {
+              "const": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifactState": {
+            "const": "unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "internal_error"
+          },
+          "exitCode": {
+            "const": 4
+          },
+          "outputs": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pdfform:configuration-result:1",
+  "$comment": "Publication must independently verify descriptor/content identity and exact committed output set. Only ok/published is completion eligible. internal_error/published preserves a confirmed commit; unknown never claims one. none/staged distinguish confirmed cleanup from retained residue. Schema cannot prove physical commit or cleanup."
+}

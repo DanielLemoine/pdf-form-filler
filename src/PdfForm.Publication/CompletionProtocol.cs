@@ -95,6 +95,12 @@ public static class CompletionProtocol
     {
         using var json = Parse(bytes);
         var r = json.RootElement;
+        if (r.ValueKind == JsonValueKind.Object && r.TryGetProperty("schema", out var configurationSchema) &&
+            configurationSchema.ValueKind == JsonValueKind.String && configurationSchema.GetString() == "pdfform.configuration-result/1")
+        {
+            ConfigurationResultValidation.ValidatePublished(r, artifacts);
+            return;
+        }
         Exact(r, "schema", "requestId", "operation", "status", "exitCode", "artifactState", "validationLevels", "tool",
             "profiles", "templates", "outputs", "errors", "warnings", "stats", "filingReadiness");
         if (Text(r, "schema") != "pdfform.result/2" || Text(r, "requestId") != requestId || Text(r, "operation") != "run" ||

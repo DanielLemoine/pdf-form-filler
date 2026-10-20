@@ -5,7 +5,7 @@ This module implements PDF-independent Rev.2 parsing, profile invariants, typed 
 ## Entry points
 
 - `ProfileParser.ParseProfile(ReadOnlySpan<byte>)` returns a `ParseResult<ProfileDefinition>`. Invalid syntax or invariants produce safe findings and no profile.
-- `DataValidator.ParseData(ReadOnlySpan<byte>)` enforces the `/2` envelope and type grammar; `DataValidator.Validate(profile, data)` returns typed values, safe findings and explicit rule states.
+- `DataValidator.ParseData(ReadOnlySpan<byte>)` enforces the legacy `/2` or context-free `/3` envelope and type grammar; `DataValidator.Validate(profile, data)` returns typed values, safe findings and explicit rule states.
 - `PacketValidator.ParseJob(ReadOnlySpan<byte>)` parses the bounded two-form job and page/output policy. `PacketValidator.Validate(job, reports)` checks document context, identity, totals and calendar. Member data validation results must also succeed; packet results are additional, not replacements.
 - `AssignmentPlanner.Build(validReport)` creates an in-memory payload manifest for every mapped field, including blanks and checkbox Off states. The renderer must additionally bind PDF identity/type/geometry/fonts and resolve omitted checkbox on-state under the single-on-state contract.
 - `ResultDocument` describes value-free operation output. `tool.build` is the opaque build identity. Artifacts have `id`, `path`, `bytes`, `sha256`. Null optional finding members are omitted on serialization.
@@ -28,10 +28,10 @@ Typed money/date/checkbox keys cannot use text-strip/case transformations to eva
 
 See [development status](DEVELOPMENT-STATUS.md) for the current observed code checkpoint and separate visual limitations. Core tests are data-only and cannot establish appearance correctness.
 
-## Production profile authority
+## Profile and catalog admission
 
-`ProductionProfileRegistry` contains the exact two migrated profile/template pairs independently accepted for mapping and contract fidelity, admitted only for bounded private renderer development. The explicit adoption scope is `bounded_private_development` and entry status is `accepted_private_development`. This admission does not establish release, supported-host, viewer, print or filing readiness. Any changed profile bytes, including a date-cell layout extension, need a separately reviewed registry update. Runtime trust enrollment and mismatch overrides are absent. `ProductionProfileSnapshot` owns immutable admitted bytes; opening/parse operations never reopen a caller path.
+`ProductionProfileRegistry` retains the exact two legacy profile/template identities. Their adoption scope remains bounded private development and does not establish supported-host, viewer, print or filing readiness.
 
-The admission/layout/wiring changes are a new source cut after the historical 137/30 checkpoint. Core activation/layout tests have now passed in the 142-case harness; no earlier diagnostic-only CLI count is reused as evidence for the new fill adapter.
+The new `FormCatalog` path parses `pdfform.catalog/1`, checks exact template/profile hashes, byte lengths and identity, requires reviewed state with no unresolved items, and binds complete target ownership to the supported closed rendering policies. `FormConfigurationSnapshot` owns immutable admitted bytes. PDF inspection, source-font observation and rendering independently verify those declarations; successful catalog parsing alone does not make a PDF safe or renderable.
 
-Generic authoring `validate`/`check-profile` APIs remain available independently. Their success does not grant production profile authority. Packet policy identifier is caller-neutral `irs-941-packet/1`; it contains only supplied-value form consistency checks. Other packet-policy identifiers are not accepted by this implementation.
+Generic `pdfform.profile/3` and `pdfform.data/3` keep non-tax forms context-free. Built-in tax context and the caller-neutral `irs-941-packet/1` policy remain separate; the whole-job CLI is still disabled. See [configuration workflow](GENERIC-ONBOARDING.md) and the included versioned schemas. Integrated runtime acceptance is tracked in [development status](DEVELOPMENT-STATUS.md).

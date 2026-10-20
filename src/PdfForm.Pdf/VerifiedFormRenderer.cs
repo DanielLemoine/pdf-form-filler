@@ -24,17 +24,32 @@ internal static class VerifiedFormRenderer
     private static readonly PdfName[] Boxes = [PdfName.MediaBox, PdfName.CropBox, PdfName.BleedBox, PdfName.TrimBox, PdfName.ArtBox];
 
     internal static VerifiedFillCandidate Render(TemplateSnapshot template, ProfileDefinition profile, BindingResult bound,
+        IReadOnlyList<FieldAssignment> assignments, bool flatten) => RenderCore(template, profile, bound, assignments, flatten, null, null);
+
+    internal static VerifiedFillCandidate Render(TemplateSnapshot template, FormConfigurationSnapshot configuration, BindingResult bound,
         IReadOnlyList<FieldAssignment> assignments, bool flatten)
     {
-        Require(bound.Bound && bound.TemplateSha256 == template.Sha256 && bound.Inspection.ExactApprovedTemplate,
+        ArgumentNullException.ThrowIfNull(configuration);
+        Require(template.MatchesConfiguration(configuration), "E_TEMPLATE_PROFILE", "Configuration is bound to different template bytes.", 3);
+        return RenderCore(template, configuration.ParseProfile(), bound, assignments, flatten, configuration,
+            configuration.IsBuiltIn ? null : configuration.ParsePolicy());
+    }
+
+    private static VerifiedFillCandidate RenderCore(TemplateSnapshot template, ProfileDefinition profile, BindingResult bound,
+        IReadOnlyList<FieldAssignment> assignments, bool flatten, FormConfigurationSnapshot? configuration, FormPolicyDefinition? policy)
+    {
+        Require(bound.Bound && bound.TemplateSha256 == template.Sha256
+            && (configuration is null ? bound.Inspection.ExactApprovedTemplate : template.MatchesConfiguration(configuration)),
             "E_FILL_BINDING", "The renderer requires exact bound template bytes.", 3);
         Require(assignments.Count == bound.Inspection.TerminalFieldCount && assignments.Select(a => a.Field).Distinct(StringComparer.Ordinal).Count() == assignments.Count,
             "E_FILL_ASSIGNMENTS", "The assignment manifest must cover every terminal field exactly once.");
+        if (policy is not null) CheckPolicyCoverage(policy, bound);
         RenderManifest manifest;
         byte[] editable;
         using (var output = new BoundedPdfMemoryStream())
         {
-            using (var pdf = ApprovedTemplateNormalizer.OpenForNormalization(template, output))
+            using (var pdf = configuration is null ? ApprovedTemplateNormalizer.OpenForNormalization(template, output)
+                : ApprovedTemplateNormalizer.OpenForNormalization(template, output, configuration))
             {
                 var form = PdfAcroForm.GetAcroForm(pdf, false) ?? throw Error("E_FILL_FORM", "The bound form is missing.");
                 var fields = TerminalFields(form);
@@ -45,44 +60,9 @@ internal static class VerifiedFormRenderer
                 var replacement = new ScheduleBEmbeddedFont.DocumentFont(pdf);
                 foreach (var assignment in assignments)
                 {
-                    var original = bound.Inspection.NamedFields[assignment.Field];
-                    var widget = original.Widgets.Single();
-                    var field = fields[assignment.Field];
-                    Require(widget.Page is > 0 && widget.Rotation == 0 && widget.GeometryValid,
-                        "E_FILL_GEOMETRY", "Widget geometry or rotation is unsupported.", 3);
-                    Require(widget.Effective.Flags == original.Effective.Flags && widget.Effective.MaxLength == original.Effective.MaxLength
-                        && widget.Effective.Alignment == original.Effective.Alignment && widget.Effective.Font.Name == original.Effective.Font.Name
-                        && widget.Effective.Font.Size == original.Effective.Font.Size && widget.Effective.Font.Subtype == original.Effective.Font.Subtype
-                        && widget.Effective.Font.ResourcePresent == original.Effective.Font.ResourcePresent && widget.Effective.Font.Embedded == original.Effective.Font.Embedded,
-                        "E_FILL_WIDGET_ATTRIBUTES", "Widget-local attributes differ from the canonical field attributes.", 3);
-                    Require(field.GetWidgets().Count == 1, "E_FILL_WIDGETS", "Exactly one widget is required per field.", 3);
-                    int flags = Integer(Inherited(field.GetPdfObject(), PdfName.Ff, form.GetPdfObject())) ?? 0;
-                    int alignment = Integer(Inherited(field.GetPdfObject(), PdfName.Q, form.GetPdfObject())) ?? 0;
-                    string? on = null, onHash = null, onResources = null;
-                    CheckboxMark? checkboxMark = null;
-                    NativeFontWitness? fontWitness = null;
-                    double[][]? dateCells = null;
-                    if (assignment.Kind == "checkbox")
-                    {
-                        on = assignment.On ?? original.AllowedOnStates.Single();
-                        Require(original.AllowedOnStates.Contains(on, StringComparer.Ordinal), "E_FILL_ON_STATE", "Checkbox on-state is not reviewed.", 3);
-                        var normal = field.GetWidgets()[0].GetPdfObject().GetAsDictionary(PdfName.AP)?.GetAsDictionary(PdfName.N);
-                        var onStream = normal?.GetAsStream(new PdfName(on));
-                        Require(onStream is not null, "E_FILL_ON_AP", "The reviewed checkbox on appearance is missing.", 3);
-                        checkboxMark = VectorCheckboxAppearance.Resolve(template.Sha256, assignment.Field, on, widget);
-                        var authored = VectorCheckboxAppearance.Create(widget, checkboxMark.Value, true);
-                        onHash = Digest(authored.GetBytes());
-                        onResources = AppearanceResourceIdentity.Compute(authored);
-                    }
-                    else
-                    {
-                        var font = NativeTextAppearance.ResolveFont(template.Sha256, pdf, field, widget.Effective.Font, out fontWitness, replacement);
-                        fonts.Add(assignment.Field, font);
-                        NativeTextAppearance.CheckFit(field, widget, assignment.Text, font, fontWitness);
-                        var key = profile.Keys.Single(k => k.Key == assignment.Key);
-                        dateCells = NativeTextAppearance.DateCells(template.Sha256, key, assignment, widget, profile.Options.DateCellLayouts);
-                    }
-                    expected.Add(assignment.Field, new(assignment, widget, flags, original.Effective.MaxLength, alignment, on, onHash, onResources, fontWitness, dateCells, checkboxMark));
+                    var target = PrepareTarget(template, profile, bound, pdf, fields, assignment, policy, replacement, out var font);
+                    if (font is not null) fonts.Add(assignment.Field, font);
+                    expected.Add(assignment.Field, target);
                 }
                 manifest = new(template.Sha256, pdf.GetDocumentInfo().GetTitle(), CapturePages(pdf), expected);
                 ReplaceAll(pdf, manifest, fonts);
@@ -109,6 +89,142 @@ internal static class VerifiedFormRenderer
         return new(final, manifest, true);
     }
 
+    private static void CheckPolicyCoverage(FormPolicyDefinition policy, BindingResult bound)
+    {
+        var targets = policy.TextFields.Select(value => value.Target).Concat(policy.CheckboxFields.Select(value => value.Target)).ToArray();
+        Require(targets.Length == bound.Inspection.TerminalFieldCount
+            && targets.Distinct(StringComparer.Ordinal).Count() == targets.Length
+            && targets.All(bound.Inspection.NamedFields.ContainsKey),
+            "E_FILL_POLICY_COVERAGE", "Configuration must cover every canonical target exactly once.", 3);
+    }
+
+    internal static void CheckConfiguredFit(TemplateSnapshot template, FormConfigurationSnapshot configuration,
+        BindingResult bound, IReadOnlyList<FieldAssignment> assignments)
+    {
+        Require(template.MatchesConfiguration(configuration) && bound.Bound && bound.TemplateSha256 == template.Sha256,
+            "E_FILL_BINDING", "Fit checks require the exact configured template and binding.", 3);
+        var profile = configuration.ParseProfile();
+        var policy = configuration.IsBuiltIn ? null : configuration.ParsePolicy();
+        if (policy is not null) CheckPolicyCoverage(policy, bound);
+        Require(assignments.Select(value => value.Field).Distinct(StringComparer.Ordinal).Count() == assignments.Count
+            && assignments.All(value => bound.Inspection.NamedFields.ContainsKey(value.Field)),
+            "E_FILL_ASSIGNMENTS", "Fit assignments must be distinct configured targets.", 3);
+        using var output = new BoundedPdfMemoryStream();
+        using var pdf = ApprovedTemplateNormalizer.OpenForNormalization(template, output, configuration);
+        var form = PdfAcroForm.GetAcroForm(pdf, false) ?? throw Error("E_FILL_FORM", "The configured form is missing.");
+        var fields = TerminalFields(form);
+        var replacement = new ScheduleBEmbeddedFont.DocumentFont(pdf);
+        foreach (var assignment in assignments)
+        {
+            var target = PrepareTarget(template, profile, bound, pdf, fields, assignment, policy, replacement, out var font);
+            // Paint and inspect only this key's mapped targets in bounded memory.
+            // This proves physical fit without a completed-form or publication claim.
+            var field = fields[assignment.Field];
+            if (font is not null)
+            {
+                ReplaceText(pdf, field, target, font);
+                var context = new NativeTextAppearance.VerificationContext();
+                if (ScheduleBEmbeddedFont.IsReplacementPolicy(target.Font!.Policy))
+                    ScheduleBEmbeddedFont.VerifyDefaults(pdf, field, target.Font, context);
+                else if (target.Font.Policy == NativeTextAppearance.PreservedFontPolicy)
+                    NativeTextAppearance.VerifyPreservedDefaults(field, target.Font, context);
+                var appearance = field.GetWidgets()[0].GetPdfObject().GetAsDictionary(PdfName.AP)?.GetAsStream(PdfName.N);
+                Require(appearance is not null, "E_VERIFY_TEXT_AP", "The target has no normal appearance stream.");
+                NativeTextAppearance.Verify(appearance!, target, context);
+            }
+            else
+            {
+                SetCheckbox(pdf, field, target);
+                VerifyCheckbox(field, target);
+            }
+        }
+    }
+
+    private static TargetWitness PrepareTarget(TemplateSnapshot template, ProfileDefinition profile, BindingResult bound,
+        PdfDocument pdf, IReadOnlyDictionary<string, PdfFormField> fields, FieldAssignment assignment,
+        FormPolicyDefinition? policy, ScheduleBEmbeddedFont.DocumentFont replacement, out PdfFont? font)
+    {
+        font = null;
+        try
+        {
+            Require(assignment.Kind is "text" or "checkbox", "E_FILL_ASSIGNMENTS", "The assignment type is unsupported.", 3);
+            var original = bound.Inspection.NamedFields[assignment.Field];
+            if (policy is not null)
+                Require(original.Type == assignment.Kind, "E_FILL_FIELD_TYPE", "The assignment differs from the configured source field type.", 3);
+            Require(original.Widgets.Count == 1 && fields.ContainsKey(assignment.Field),
+                "E_FILL_WIDGETS", "Exactly one canonical widget is required per assignment.", 3);
+            var widget = original.Widgets.Single();
+            var field = fields[assignment.Field];
+            Require(widget.Page is > 0 && widget.Rotation == 0 && widget.GeometryValid,
+                "E_FILL_GEOMETRY", "Widget geometry or rotation is unsupported.", 3);
+            Require(widget.Effective.Flags == original.Effective.Flags && widget.Effective.MaxLength == original.Effective.MaxLength
+                && widget.Effective.Alignment == original.Effective.Alignment && widget.Effective.Font.Name == original.Effective.Font.Name
+                && widget.Effective.Font.Size == original.Effective.Font.Size && widget.Effective.Font.Subtype == original.Effective.Font.Subtype
+                && widget.Effective.Font.ResourcePresent == original.Effective.Font.ResourcePresent && widget.Effective.Font.Embedded == original.Effective.Font.Embedded,
+                "E_FILL_WIDGET_ATTRIBUTES", "Widget-local attributes differ from canonical field attributes.", 3);
+            Require(field.GetWidgets().Count == 1, "E_FILL_WIDGETS", "Exactly one widget is required per field.", 3);
+            var form = PdfAcroForm.GetAcroForm(pdf, false)!;
+            int flags = Integer(Inherited(field.GetPdfObject(), PdfName.Ff, form.GetPdfObject())) ?? 0;
+            int alignment = Integer(Inherited(field.GetPdfObject(), PdfName.Q, form.GetPdfObject())) ?? 0;
+            string? on = null, onHash = null, onResources = null;
+            CheckboxMark? checkboxMark = null;
+            NativeFontWitness? fontWitness = null;
+            double[][]? dateCells = null;
+            if (assignment.Kind == "checkbox")
+            {
+                on = assignment.On ?? original.AllowedOnStates.Single();
+                Require(original.AllowedOnStates.Contains(on, StringComparer.Ordinal), "E_FILL_ON_STATE", "Checkbox on-state is not configured.", 3);
+                var normal = field.GetWidgets()[0].GetPdfObject().GetAsDictionary(PdfName.AP)?.GetAsDictionary(PdfName.N);
+                Require(normal?.GetAsStream(new PdfName(on)) is not null, "E_FILL_ON_AP", "The configured checkbox on appearance is missing.", 3);
+                if (policy is null) checkboxMark = VectorCheckboxAppearance.Resolve(template.Sha256, assignment.Field, on, widget);
+                else
+                {
+                    var configured = policy.CheckboxFields.SingleOrDefault(value => value.Target == assignment.Field)
+                        ?? throw Error("E_FILL_POLICY_TARGET", "The configured checkbox policy is missing.", 3);
+                    var mark = VectorCheckboxAppearance.ResolveConfiguredMark(configured.Mark);
+                    checkboxMark = VectorCheckboxAppearance.ResolveBound(template.Sha256, template.Sha256, assignment.Field,
+                        configured.Target, on, configured.OnState, configured.Page, configured.Rectangle, widget, mark);
+                }
+                var authored = VectorCheckboxAppearance.Create(widget, checkboxMark.Value, true);
+                onHash = Digest(authored.GetBytes());
+                onResources = AppearanceResourceIdentity.Compute(authored);
+            }
+            else
+            {
+                if (policy is null)
+                {
+                    font = NativeTextAppearance.ResolveFont(template.Sha256, pdf, field, widget.Effective.Font, out fontWitness, replacement);
+                    NativeTextAppearance.CheckFit(field, widget, assignment.Text, font, fontWitness);
+                    var key = profile.Keys.Single(value => value.Key == assignment.Key);
+                    dateCells = NativeTextAppearance.DateCells(template.Sha256, key, assignment, widget, profile.Options.DateCellLayouts);
+                }
+                else
+                {
+                    var configured = policy.TextFields.SingleOrDefault(value => value.Target == assignment.Field)
+                        ?? throw Error("E_FILL_POLICY_TARGET", "The configured text policy is missing.", 3);
+                    Require(configured.Page == widget.Page && widget.Rectangle.SequenceEqual(configured.Rectangle),
+                        "E_FILL_POLICY_TARGET", "Text policy must match its exact target, page and rectangle.", 3);
+                    Require(widget.Effective.Alignment is "left" or "center" or "right"
+                        && !widget.Effective.Flags.Multiline && !widget.Effective.Flags.Password && !widget.Effective.Flags.RichText,
+                        "E_TEXT_LAYOUT", "Configured text requires a supported single-line source field, including when blank.", 3);
+                    Require(!widget.Effective.Flags.Comb || widget.Effective.MaxLength is > 0,
+                        "E_TEXT_COMB_CAPACITY", "A configured comb source requires explicit capacity, including when blank.", 3);
+                    font = NativeTextAppearance.ResolveConfiguredFont(pdf, field, widget, configured, assignment.Text, out fontWitness, replacement);
+                    NativeTextAppearance.CheckFit(field, widget, assignment.Text, font, fontWitness);
+                    var key = profile.Keys.Single(value => value.Key == assignment.Key);
+                    dateCells = NativeTextAppearance.DateCells(template.Sha256, configured.Layout, key, assignment, widget, profile.Options.DateCellLayouts);
+                }
+            }
+            return new(assignment, widget, flags, original.Effective.MaxLength, alignment,
+                on, onHash, onResources, fontWitness, dateCells, checkboxMark);
+        }
+        catch (VerifiedFillException error)
+        {
+            if (policy is not null) error.ApprovedField ??= VerifiedFillPipeline.DiagnosticFieldId(assignment.Field);
+            throw;
+        }
+    }
+
     /// <summary>Complete replacement shared with controlled synthetic transition tests; never a public template-admission path.</summary>
     internal static void ReplaceAll(PdfDocument pdf, RenderManifest manifest, IReadOnlyDictionary<string, PdfFont> fonts)
     {
@@ -123,19 +239,22 @@ internal static class VerifiedFormRenderer
             var field = fields[pair.Key];
             var target = pair.Value;
             if (target.Assignment.Kind == "checkbox") SetCheckbox(pdf, field, target);
-            else
-            {
-                CheckTargetForReplacement(field, target, fonts[pair.Key]);
-                field.SetValue(target.Assignment.Text, fonts[pair.Key], NativeTextAppearance.FontSize);
-                if (target.Font!.Policy == ScheduleBEmbeddedFont.Policy)
-                    ScheduleBEmbeddedFont.SetDefaults(pdf, field, fonts[pair.Key]);
-                ClearResetData(field, false);
-                if (target.Assignment.Text.Length == 0) NativeTextAppearance.SetEmptyAppearance(pdf, field);
-                else if (target.DateCells is not null)
-                    NativeTextAppearance.SetDateAppearance(pdf, field, target, fonts[pair.Key]);
-                RemoveAlternateAppearances(field);
-            }
+            else ReplaceText(pdf, field, target, fonts[pair.Key]);
         }
+    }
+    private static void ReplaceText(PdfDocument pdf, PdfFormField field, TargetWitness target, PdfFont font)
+    {
+        CheckTargetForReplacement(field, target, font);
+        field.SetValue(target.Assignment.Text, font, target.Font!.Size);
+        if (ScheduleBEmbeddedFont.IsReplacementPolicy(target.Font.Policy))
+            ScheduleBEmbeddedFont.SetDefaults(pdf, field, font, target.Font.Size);
+        else if (target.Font.Policy == NativeTextAppearance.PreservedFontPolicy)
+            NativeTextAppearance.SetPreservedDefaults(field, font, target.Font);
+        ClearResetData(field, false);
+        if (target.Assignment.Text.Length == 0) NativeTextAppearance.SetEmptyAppearance(pdf, field);
+        else if (target.DateCells is not null)
+            NativeTextAppearance.SetDateAppearance(pdf, field, target, font);
+        RemoveAlternateAppearances(field);
     }
     private static void CheckTargetForReplacement(PdfFormField field, TargetWitness target, PdfFont font)
     {
@@ -182,8 +301,10 @@ internal static class VerifiedFormRenderer
                 Require(ap is not null, "E_VERIFY_TEXT_AP", "A text target has no normal appearance stream.");
                 try
                 {
-                    if (target.Font!.Policy == ScheduleBEmbeddedFont.Policy)
+                    if (ScheduleBEmbeddedFont.IsReplacementPolicy(target.Font!.Policy))
                         ScheduleBEmbeddedFont.VerifyDefaults(pdf, field, target.Font, fontVerification);
+                    else if (target.Font.Policy == NativeTextAppearance.PreservedFontPolicy)
+                        NativeTextAppearance.VerifyPreservedDefaults(field, target.Font, fontVerification);
                     NativeTextAppearance.Verify(ap!, target, fontVerification);
                 }
                 catch (VerifiedFillException ex) { ex.ApprovedField ??= target.Assignment.Field; throw; }

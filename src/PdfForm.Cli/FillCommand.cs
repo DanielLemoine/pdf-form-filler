@@ -9,6 +9,10 @@ public static partial class CliApplication
 {
     private static CliExecution ExecuteFill(string[] args)
     {
+        var catalog = CliOnboardingArguments.Parse(args);
+        if (catalog.Handled)
+            return catalog.Request is { Operation: CliOnboardingOperation.CatalogFill } request
+                ? ExecuteCatalogFill(request) : OnboardingArgumentFailure("fill", catalog);
         var findings = new List<Finding>();
         var levels = new Dictionary<string, string> { ["syntax"] = "not_run", ["profile"] = "not_run", ["data"] = "not_run", ["binding"] = "not_run", ["packet"] = "not_run" };
         var profiles = new List<ProfileIdentity>();
@@ -83,15 +87,15 @@ public static partial class CliApplication
             levels["syntax"] = "passed";
             if (!parsedProfile.IsValid)
             { findings.AddRange(parsedProfile.Findings); levels["profile"] = "failed"; return Result(3, "profile_invalid"); }
-            var admitted = ProductionProfileRegistry.Bind(profileBytes!, template.Sha256);
+            var admitted = FormCatalog.BindDefault(profileBytes!, template.Sha256, template.ByteCount);
             if (!admitted.IsValid)
             { findings.AddRange(admitted.Findings); levels["profile"] = "failed"; return Result(3, "mismatch"); }
             reviewedMetadata = true;
-            var identity = admitted.Value!.Identity;
-            profiles.Add(new(identity.Id, identity.Revision, identity.ProfileVersion, identity.ProfileSha256));
+            var identity = parsedProfile.Value!;
+            profiles.Add(new(identity.Id, identity.Revision, identity.ProfileVersion, Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(profileBytes!))));
             levels["profile"] = "passed";
 
-            var prepared = VerifiedFillPipeline.Prepare(template, admitted.Value, dataBytes, flatten);
+            var prepared = VerifiedFillPipeline.Prepare(template, admitted.Value!, dataBytes, flatten);
             findings.AddRange(prepared.Findings);
             foreach (var level in prepared.ValidationLevels) levels[level.Key] = level.Value;
             foreach (var stat in prepared.Stats) stats[stat.Key] = stat.Value;

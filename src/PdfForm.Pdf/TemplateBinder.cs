@@ -6,21 +6,38 @@ namespace PdfForm.Pdf;
 /// <summary>Static binding only. Callers must load a reviewed release profile and separately pass data/appearance/fit gates.</summary>
 public sealed class TemplateBinder
 {
-    public BindingResult Bind(TemplateSnapshot snapshot, ProfileDefinition profile)
+    public BindingResult Bind(TemplateSnapshot snapshot, ProfileDefinition profile) => BindCore(snapshot, profile, null);
+
+    public BindingResult Bind(TemplateSnapshot snapshot, FormConfigurationSnapshot configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        return BindCore(snapshot, configuration.ParseProfile(), configuration);
+    }
+
+    private BindingResult BindCore(TemplateSnapshot snapshot, ProfileDefinition profile, FormConfigurationSnapshot? configuration)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(profile);
-        var inspection = new PdfTemplateInspector().Inspect(snapshot);
+        var inspection = configuration is null ? new PdfTemplateInspector().Inspect(snapshot)
+            : new PdfTemplateInspector().Inspect(snapshot, configuration);
         var findings = new List<Finding>(inspection.Findings);
-        var approved = ApprovedTemplates.Find(snapshot.Sha256);
+        bool external = configuration is { IsBuiltIn: false };
+        var approved = external ? null : ApprovedTemplates.Find(snapshot.Sha256);
         void Error(string code, string message, string? field = null) => findings.Add(new(code, "binding", message, Field: field));
         bool identity = profile.Template.Sha256Allowlist.Length > 0
             && profile.Template.Sha256Allowlist.Contains(snapshot.Sha256, StringComparer.Ordinal);
         if (!identity) Error("E_TEMPLATE_HASH", "Exact opened template bytes are absent from the mandatory allowlist.");
-        if (approved is null) Error("E_TEMPLATE_NOT_REVIEWED", "Template bytes are absent from the initial release-owned review registry.");
+        if (external)
+        {
+            if (!snapshot.MatchesConfiguration(configuration!))
+                Error("E_CONFIGURATION_TEMPLATE", "The exact external configuration refers to different immutable template bytes.");
+            else if (!inspection.ExactApprovedTemplate && inspection.Findings.All(f => f.Severity != "error"))
+                Error("E_CONFIGURATION_POLICY", "The external configuration did not independently pass document inspection.");
+        }
+        else if (approved is null) Error("E_TEMPLATE_NOT_REVIEWED", "Template bytes are absent from the initial release-owned review registry.");
         if (approved is not null && (profile.Id != approved.Id || profile.Revision != approved.Revision))
             Error("E_TEMPLATE_PROFILE", "The profile identity does not match the reviewed template.");
-        if (profile.Template.Title != inspection.ActualTitle) Error("E_TEMPLATE_TITLE", "Template title differs from the reviewed profile.");
+        if (profile.Template.Title != (external ? inspection.ActualTitle ?? "" : inspection.ActualTitle)) Error("E_TEMPLATE_TITLE", "Template title differs from the reviewed profile.");
         if (profile.Template.PageCount != inspection.Pages) Error("E_TEMPLATE_PAGES", "Template page count differs from the reviewed profile.");
         if (profile.Template.StructureFingerprintV1 != inspection.StructureFingerprintV1)
             Error("E_TEMPLATE_STRUCTURE", "Legacy comparison fingerprint differs; it does not authorize byte identity or placement.");
@@ -33,7 +50,7 @@ public sealed class TemplateBinder
             Error("E_PROFILE_CAPABILITY", "Profile does not declare the required text capability.");
         if (inspection.Fields.Any(f => f.Type == "checkbox") && !capabilities.Contains("checkbox.singleWidget"))
             Error("E_PROFILE_CAPABILITY", "Profile does not declare the required checkbox capability.");
-        if (inspection.Xfa.Present && !capabilities.Contains("xfa.staticHybrid"))
+        if (!external && inspection.Xfa.Present && !capabilities.Contains("xfa.staticHybrid"))
             Error("E_PROFILE_CAPABILITY", "Profile does not declare the required static-XFA capability.");
         var owned = new HashSet<string>(StringComparer.Ordinal);
         foreach (var key in profile.Keys)
@@ -96,7 +113,7 @@ public sealed class TemplateBinder
                 Error("E_CHECKBOX_ON_STATE", "A checkbox assignment does not resolve to one allowed export state.", field.Name ?? field.Id);
         }
         return new("pdfform.binding/2", snapshot.Sha256, findings.All(f => f.Severity != "error"),
-            ["exactTemplateBytes", "reviewRegistry", "canonicalFieldsAndWidgets", "effectiveAttributes", "profileCoverage", "targetTypes", "staticCapacity", "capabilityClassification"],
+            ["exactTemplateBytes", external ? "configurationPolicyAndBlankness" : "reviewRegistry", "canonicalFieldsAndWidgets", "effectiveAttributes", "profileCoverage", "targetTypes", "staticCapacity", "capabilityClassification"],
             ["dataValidation", "glyphCoverage", "textFit", "appearanceGeneration", "viewerAcceptance", "physicalPrint", "filingReadiness"], findings.AsReadOnly(), inspection);
     }
 }

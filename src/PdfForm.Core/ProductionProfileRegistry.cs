@@ -42,6 +42,10 @@ public static class ProductionProfileRegistry
         return new(true, trusted, candidate, trusted ? Array.Empty<Finding>() : [new("E_PROFILE_REVIEW_PENDING", "profile", "Profile candidate has not completed independent implementation review.")]);
     }
 
+    /// <summary>Default whole-binding adapter; the existing exact-pair admission remains authoritative.</summary>
+    public static ParseResult<FormConfigurationSnapshot> BindConfiguration(ReadOnlySpan<byte> profileBytes,
+        string templateSha256, long templateBytes) => FormCatalog.BindDefault(profileBytes, templateSha256, templateBytes);
+
     public static ParseResult<ProductionProfileSnapshot> Bind(ReadOnlySpan<byte> profileBytes, string templateSha256)
     {
         // Copy first: the hash, admission decision and later parses always use the same owned snapshot.
