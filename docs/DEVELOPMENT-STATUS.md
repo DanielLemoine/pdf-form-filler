@@ -16,15 +16,19 @@ The corrected cut passed a bounded 288-dpi review of 12 PDFs and 28 rendered pag
 
 This supports the selected synthetic specimens and fixed font in those two renderer versions. It does not establish Windows/Adobe behavior, arbitrary-viewer equivalence, viewer editing/reset, physical printing or filing readiness. Exact bitmap equality between renderers is not claimed.
 
-## Generic catalog integration: pending checkpoint
+## Generic catalog integration: synthetic Linux checkpoint accepted
 
 This draft contains the reviewed Core catalog contracts, PDF discovery/binding/rendering policies, CLI authoring and catalog commands, and create-new configuration publication. The two built-in identities remain unchanged. A third form's identity is present only in test-side fixture source, never in the production registry.
 
-Two narrow fixture corrections are included: explicit PDF `/Off` name construction for the installed library API, and post-close MemoryStream.ToArray readback for finalized serialization. The corrected focused build passed. The inspector then stopped at the first configured bundled-font positive assertion, at 1 pt; the returned diagnostic cause has not yet been observed. A bounded value-free diagnostic run is being prepared before any product correction. Core has passed 202 checks in this development line. The broader inspector/renderer/CLI/publication/migration checkpoint remains incomplete; earlier interrupted and failed attempts do not count as passes.
+The corrected renderer follows the canonical raw field/widget ownership tree instead of a flattened library field map or wrapper terminality. It preserves inherited field types and unnamed widgets with local appearance/type entries, validates exact wrapper identities, and refuses repeated, missing, mixed or excessive nodes. Added controls compare literal expected names with independent inspector and assignment inventories. Existing assignment, font, appearance and publication guards remain in force. The publication fixture also explicitly distinguishes absent nullable template memory from a supplied template.
 
-Prospective counts are Core 202, inspector 543, renderer 149, CLI 91, publication 313 Linux / 379 Windows and nine migration comparisons. The separate third-form generator mode does not change ordinary CLI counts and has not been invoked for end-to-end acceptance. Before that acceptance, freeze the complete built production CLI closure, then introduce a new synthetic blank form and reviewed configuration, and run check/configure/save/sample/editable/flattened flows without changing any frozen engine bytes. Human draft review is mandatory.
+Accepted results, independently reconciled on 20 October 2026, are Core 202, inspector 551, renderer 149, CLI 91, Linux publication 313 and nine migration comparisons. Coverage combines three distinct settled runs: a fresh affected-product/inspector build and inspector 551; a fresh broader build with Core 202, renderer 149 and CLI 91; and a focused fresh publication-test build with publication 313 and migration nine. Product source is identical across these accepted runs. The last run changes only the nullable-memory test helper and reuses the accepted product dependencies. This is combined coverage, not one monolithic execution or a clean-room build of this curated layout.
 
-The external catalog path is implemented development source; configuration-only onboarding is not yet end-to-end qualified. Generic visual acceptance, Windows viewer editing/reset, physical printing and filing readiness remain open. The embedded-font two-form results above apply only to their exact earlier cut.
+Earlier interrupted runs, the configured-font assignment failure, and the later publication harness setup/fixture failures remain retained failures. The successful corrections do not reclassify those attempts. The 379-case Windows publication selection remains prospective.
+
+The separate third-form generator mode does not change ordinary CLI counts and has not completed end-to-end acceptance. Before that acceptance, freeze the complete built production CLI closure, then introduce a new synthetic blank form and reviewed configuration, and run check/configure/save/sample/editable/flattened flows without changing any frozen engine bytes. Human draft review is mandatory.
+
+The external catalog path is implemented development source; configuration-only onboarding is not yet end-to-end qualified. Clean-room restore/build of the curated source, generic visual acceptance, Windows viewer editing/reset, physical printing and filing readiness remain open. The embedded-font two-form results above apply only to their exact earlier cut.
 
 ## Scope boundaries
 

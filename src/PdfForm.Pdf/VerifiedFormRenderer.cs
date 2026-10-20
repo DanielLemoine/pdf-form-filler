@@ -484,8 +484,90 @@ internal static class VerifiedFormRenderer
         foreach (string digest in current) if (next < original.Length && original[next] == digest) next++;
         return next == original.Length;
     }
-    private static Dictionary<string, PdfFormField> TerminalFields(PdfAcroForm form) => form.GetAllFormFields()
-        .Where(p => p.Value.IsTerminalFormField()).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+    // iText may wrap a nameless widget with local /DA or /FT as a form field.
+    // Traverse its raw dictionary ownership with the independent inspector's
+    // partition, rather than using the flattened name map or wrapper terminality.
+    private static Dictionary<string, PdfFormField> TerminalFields(PdfAcroForm form)
+    {
+        var result = new Dictionary<string, PdfFormField>(StringComparer.Ordinal);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        int entries = 0;
+        void Reserve(int count)
+        {
+            Require(count >= 0 && count <= 30_000 - entries, "E_FILL_FIELD_TREE", "The canonical field tree exceeds its entry bound.", 3);
+            entries += count;
+        }
+        static bool Annotation(PdfDictionary node) => PdfName.Widget.Equals(node.GetAsName(PdfName.Subtype))
+            && !node.ContainsKey(PdfName.T);
+        Dictionary<string, PdfFormField> Index(IEnumerable<PdfFormField> fields, int maximum)
+        {
+            var indexed = new Dictionary<string, PdfFormField>(StringComparer.Ordinal);
+            foreach (var field in fields)
+                Require(indexed.Count < maximum && indexed.TryAdd(ObjectId(field.GetPdfObject()), field),
+                    "E_FILL_FIELD_TREE", "Canonical wrapper identities are missing, repeated or excessive.", 3);
+            return indexed;
+        }
+        void Walk(PdfFormField field, string prefix, int depth, PdfDictionary? expectedParent)
+        {
+            var node = field.GetPdfObject();
+            Require(depth <= 64 && seen.Add(ObjectId(node)), "E_FILL_FIELD_TREE", "Canonical field ancestry repeats or exceeds its depth bound.", 3);
+            Require(expectedParent is null || node.GetAsDictionary(PdfName.Parent) is { } parent && SameObject(parent, expectedParent),
+                "E_FILL_FIELD_TREE", "A canonical field does not link to its owning parent.", 3);
+            var part = node.GetAsString(PdfName.T)?.ToUnicodeString();
+            Require(part is null || part.Length <= 1024, "E_FILL_FIELD_TREE", "A canonical field name exceeds its bound.", 3);
+            string name = part is null ? prefix : prefix.Length == 0 ? part : prefix + "." + part;
+            var kids = node.GetAsArray(PdfName.Kids);
+            int count = kids?.Size() ?? 0;
+            Reserve(count);
+            var wrapped = Index(field.GetChildFormFields(), count);
+            var children = new List<PdfFormField>();
+            int widgets = 0;
+            for (int i = 0; i < count; i++)
+            {
+                var child = kids!.GetAsDictionary(i);
+                Require(child is not null, "E_FILL_FIELD_TREE", "A canonical child is not a dictionary.", 3);
+                string identity = ObjectId(child!);
+                if (Annotation(child!))
+                {
+                    widgets++;
+                    Require(seen.Add(identity) && child!.GetAsDictionary(PdfName.Parent) is { } owner && SameObject(owner, node),
+                        "E_FILL_FIELD_TREE", "A canonical widget has repeated or inconsistent ownership.", 3);
+                    wrapped.Remove(identity);
+                }
+                else
+                {
+                    Require(wrapped.Remove(identity, out var childField), "E_FILL_FIELD_TREE", "A canonical child has no exact wrapper.", 3);
+                    children.Add(childField!);
+                }
+            }
+            Require(wrapped.Count == 0, "E_FILL_FIELD_TREE", "A wrapper is absent from the canonical child inventory.", 3);
+            if (children.Count > 0)
+            {
+                Require(widgets == 0 && !PdfName.Widget.Equals(node.GetAsName(PdfName.Subtype)),
+                    "E_FILL_FIELD_TREE", "A field container mixes widgets and named children.", 3);
+                foreach (var child in children) Walk(child, name, depth + 1, node);
+                return;
+            }
+            Require(Inherited(node, PdfName.FT, null) is PdfName && name.Length > 0
+                && result.Count < Limits.MaxKeysOrTargets && result.TryAdd(name, field),
+                "E_FILL_FIELD_TREE", "Canonical terminal field identity or type is missing, repeated or excessive.", 3);
+        }
+        var roots = form.GetPdfObject().GetAsArray(PdfName.Fields);
+        Require(roots is not null, "E_FILL_FIELD_TREE", "Canonical field roots are missing.", 3);
+        Reserve(roots!.Size());
+        var rootWrappers = Index(form.GetRootFormFields().Values, roots.Size());
+        for (int i = 0; i < roots.Size(); i++)
+        {
+            var node = roots.GetAsDictionary(i);
+            Require(node is not null, "E_FILL_FIELD_TREE", "A canonical root is not a dictionary.", 3);
+            Require(rootWrappers.Remove(ObjectId(node!), out var wrapper),
+                "E_FILL_FIELD_TREE", "A canonical root has no exact unique wrapper.", 3);
+            // Root names are never reconstructed from iText's flattened child map.
+            Walk(wrapper!, "", 0, null);
+        }
+        Require(rootWrappers.Count == 0, "E_FILL_FIELD_TREE", "A wrapper is absent from the canonical root inventory.", 3);
+        return result;
+    }
     internal static PdfObject? Inherited(PdfDictionary? node, PdfName key, PdfDictionary? acro)
     {
         var visited = new HashSet<string>(StringComparer.Ordinal);

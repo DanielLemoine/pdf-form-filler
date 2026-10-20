@@ -2,7 +2,7 @@
 
 An offline .NET command-line tool in development for the exact reviewed Form 941 (March 2026) and Schedule B (March 2024) PDF templates. It validates supplied values and creates new editable or flattened PDFs. It does not calculate tax or file returns.
 
-**Development checkpoint:** The earlier embedded-font two-form cut passed Linux regression and selected Poppler/MuPDF visual checks. This draft adds an external, hash-bound catalog/profile workflow for supported AcroForms. Its source review is complete; the integrated generic test checkpoint and unchanged-engine third-form acceptance are still pending. Earlier two-form results do not qualify the new generic path. See [development status](docs/DEVELOPMENT-STATUS.md).
+**Development checkpoint:** The earlier embedded-font two-form cut passed Linux regression and selected Poppler/MuPDF visual checks. This draft adds an external, hash-bound catalog/profile workflow for supported AcroForms. Its source review and combined synthetic Linux regression checkpoint have passed. Unchanged-engine third-form acceptance is still pending. Earlier two-form results do not qualify the new generic path. See [development status](docs/DEVELOPMENT-STATUS.md).
 
 ## Adding a form by configuration
 
@@ -19,7 +19,7 @@ dotnet restore PdfForm.slnx --locked-mode --configfile NuGet.Config --disable-pa
 dotnet build PdfForm.slnx --no-restore --disable-build-servers -m:1 -nodeReuse:false -p:BuildInParallel=false -p:UseSharedCompilation=false
 ```
 
-This repository contains source, not a runtime or binary distribution. Restore needs network access to the configured official feed; the application itself works offline. Do not silently regenerate lockfiles on a locked-restore error. A clean-room restore/build of this curated layout and the complete generic integration checkpoint remain pending. The retained two-form checkpoint applies to its earlier exact source cut.
+This repository contains source, not a runtime or binary distribution. Restore needs network access to the configured official feed; the application itself works offline. Do not silently regenerate lockfiles on a locked-restore error. A clean-room restore/build of this curated layout remains pending. The combined generic Linux regression checkpoint is described below. The retained two-form checkpoint applies to its earlier exact source cut.
 
 On Bash, `tools/dotnet-env.sh` can isolate writable SDK/NuGet state under `.runtime`. Set `PDFFORM_DOTNET_ROOT` to an existing SDK directory, source the file from the repository root, and invoke `"$PDFFORM_DOTNET_ROOT/dotnet"` explicitly. Setting DOTNET_ROOT does not choose an executable from PATH. Also set `XDG_STATE_HOME="$PWD/.runtime/state"` and `NUGET_PLUGINS_CACHE_PATH="$PWD/.runtime/nuget-plugins"` if those variables are present in your environment. No SDK download is performed by the helper.
 
@@ -65,7 +65,7 @@ python3 tools/check_migration.py
 
 Use a new final renderer directory for each attempt. The publication harness accepts exactly one existing fully qualified parent, creates its own unique attempt, and emits a terminal receipt. An exit code alone does not replace reviewing that receipt. Windows test paths should be fully qualified and meet the local fixed-NTFS/no-reparse contract. The old convenience shell wrapper is intentionally omitted because its root-admission behavior is stale.
 
-The preserved embedded-font checkpoint passed Core 142, inspector 147, renderer 149, CLI 45 and nine migration comparisons. Its separate active publication result was 244 Linux cases. The current generic source has prospective counts of Core 202, inspector 543, renderer 149, CLI 91 and publication 313 on Linux / 379 on Windows, plus nine migration comparisons. These are registered source counts, not a report that the complete new suite passed. See [development status](docs/DEVELOPMENT-STATUS.md) for the current boundary.
+The preserved embedded-font checkpoint passed Core 142, inspector 147, renderer 149, CLI 45 and nine migration comparisons. Its separate active publication result was 244 Linux cases. The corrected generic source has accepted synthetic Linux results of Core 202, inspector 551, renderer 149, CLI 91, publication 313 and nine migration comparisons. These results combine distinct accepted runs using identical product source, with a test-only nullable-memory fixture correction in the final publication run; they are not a single monolithic run. The 379-case Windows publication selection remains prospective. See [development status](docs/DEVELOPMENT-STATUS.md) for the current boundary.
 
 The [historical golden publication overlay](supplemental/publication-golden/README.md) still targets its exact earlier commit and does not apply to the current generic harness. The [supplemental onboarding guide assertions](supplemental/generic-onboarding-guide/README.md) are separate test-side source with external Windows integration dependencies; they are not part of the solution's ordinary harness counts.
 

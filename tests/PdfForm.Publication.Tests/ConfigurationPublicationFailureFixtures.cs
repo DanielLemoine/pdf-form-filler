@@ -48,7 +48,7 @@ internal static class ConfigurationPublicationFailureFixtures
             Path.Combine(dir, "configuration"), "configuration-request", "synthetic-build", operation, [],
             catalog, profile, input => Same(input, catalog), input => Same(input, profile),
             outputs => receipt("configuration-request", operation, outputs),
-            operation == "save-config" ? new ReadOnlyMemory<byte>(template) : null,
+            operation == "save-config" ? new ReadOnlyMemory<byte>(template) : (ReadOnlyMemory<byte>?)null,
             operation == "save-config" ? input => Same(input, template) : null);
         void NoStages(string dir) => check(!Directory.EnumerateDirectories(dir, ".pdfform-stage-*").Any());
         byte[] Mutate(byte[] source, Action<JsonObject> change)

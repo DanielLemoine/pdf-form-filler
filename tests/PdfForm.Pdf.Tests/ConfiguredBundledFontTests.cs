@@ -20,13 +20,36 @@ internal static class ConfiguredBundledFontTests
             && ScheduleBEmbeddedFont.Supports(0x00c9) && !ScheduleBEmbeddedFont.Supports(0x00e9)
             && !ScheduleBEmbeddedFont.Supports(31) && !ScheduleBEmbeddedFont.Supports(127),
             "configured strategy shares the accepted engine-fixed ASCII plus U+00C9 repertoire");
+        // Diagnostic-only batching: retain the same eight independent positive
+        // preparations before the first fail-fast assertion. No oracle is relaxed.
+        var controls = new List<(float Size, TemplateSnapshot Template, FormConfigurationSnapshot Configuration,
+            Dictionary<string, string> Values, VerifiedFillResult Populated, VerifiedFillResult Blank)>();
         foreach (float size in new[] { 1f, 10, 12.5f, 72 })
         {
             var template = SyntheticTemplate(size, size);
             var configuration = Configuration(template);
             var keys = configuration.ParseProfile().Keys;
             var values = keys.ToDictionary(key => key.Key, _ => "AÉ", StringComparer.Ordinal);
-            var prepared = VerifiedFillPipeline.Prepare(template, configuration, Data(configuration, values), flatten: false);
+            var populated = VerifiedFillPipeline.Prepare(template, configuration, Data(configuration, values), flatten: false);
+            EmitPreparationDiagnostic(size, "populated", populated);
+            var blank = VerifiedFillPipeline.Prepare(template, configuration,
+                Data(configuration, keys.ToDictionary(key => key.Key, _ => "", StringComparer.Ordinal)), flatten: false);
+            EmitPreparationDiagnostic(size, "blank", blank);
+            controls.Add((size, template, configuration, values, populated, blank));
+        }
+        // One additional in-memory renderer probe diagnoses the shared guard;
+        // it does not replace any of the eight public Prepare results or checks.
+        if (controls[0].Populated.Findings.Any(f => f.Code == "E_FILL_ASSIGNMENTS"))
+            EmitAssignmentGuardDiagnostic(controls[0].Template, controls[0].Configuration, controls[0].Values);
+        CheckCanonicalFieldControls(check, controls[0].Template, controls[0].Configuration, controls[0].Values);
+        foreach (var control in controls)
+        {
+            float size = control.Size;
+            var template = control.Template;
+            var configuration = control.Configuration;
+            var keys = configuration.ParseProfile().Keys;
+            var values = control.Values;
+            var prepared = control.Populated;
             check(prepared.ReadyToPublish && prepared.ExitCode == 0
                 && prepared.Findings.Any(f => f.Code == "W_FONT_EXPLICIT_REPLACEMENT" && f.Severity == "warning"),
                 "configured pinned-font rendering and explicit warning: " + size);
@@ -37,8 +60,7 @@ internal static class ConfiguredBundledFontTests
                 "every witness retains the exact pinned identity and observed source size: " + size);
             VerifySharedProgram(check, candidate, "populated " + size);
 
-            var blank = VerifiedFillPipeline.Prepare(template, configuration,
-                Data(configuration, keys.ToDictionary(key => key.Key, _ => "", StringComparer.Ordinal)), flatten: false);
+            var blank = control.Blank;
             check(blank.ReadyToPublish, "blank configured targets retain independently verified editable defaults: " + size);
             if (blank.Candidate is { } blankCandidate)
             {
@@ -83,6 +105,228 @@ internal static class ConfiguredBundledFontTests
         try { shared.Get(second, out _); } catch (VerifiedFillException error) { crossDocumentCode = error.Code; }
         check(crossDocumentCode == "E_FONT_DOCUMENT", "the shared font cannot leak into another authoring document");
         first.AddNewPage(); second.AddNewPage();
+    }
+
+    // Independent identities keep this fixture discriminating: a typed parent
+    // contains two named leaf fields, one inheriting /FT and one declaring it.
+    private static void CheckCanonicalFieldControls(Action<bool, string> check, TemplateSnapshot template,
+        FormConfigurationSnapshot configuration, Dictionary<string, string> values)
+    {
+        var binding = new TemplateBinder().Bind(template, configuration);
+        var parsed = DataValidator.ParseData(Data(configuration, values));
+        if (!binding.Bound || !parsed.IsValid || parsed.Value is not { } data)
+            throw new InvalidOperationException("canonical-control-admission");
+        var validation = DataValidator.Validate(configuration.ParseProfile(), data);
+        if (!validation.IsValid) throw new InvalidOperationException("canonical-control-data");
+        var assignments = AssignmentPlanner.Build(validation);
+        using (var pdf = new PdfDocument(VerifiedFormRenderer.Reader(ExtensionBytes(template))))
+        {
+            var form = PdfAcroForm.GetAcroForm(pdf, false)!;
+            var all = form.GetAllFormFields();
+            var parent = all["group"];
+            var first = all["group.amountA"];
+            var second = all["group.amountB"];
+            check(all.Count == 3 && PdfName.Tx.Equals(parent.GetPdfObject().GetAsName(PdfName.FT))
+                && parent.GetChildFormFields().Count == 2
+                && parent.GetChildFormFields().All(child => child.GetPdfObject().GetAsString(PdfName.T) is not null)
+                && !first.GetPdfObject().ContainsKey(PdfName.FT)
+                && PdfName.Tx.Equals(VerifiedFormRenderer.Inherited(first.GetPdfObject(), PdfName.FT, null))
+                && PdfName.Tx.Equals(second.GetPdfObject().GetAsName(PdfName.FT)),
+                "canonical fixture retains typed parent and inherited leaf type");
+            var expected = new HashSet<string>(["group.amountA", "group.amountB"], StringComparer.Ordinal);
+            var localFt = all.Where(pair => pair.Value.IsTerminalFormField()).Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal);
+            check(expected.SetEquals(Fields(form).Keys) && expected.SetEquals(binding.Inspection.NamedFields.Keys)
+                && expected.SetEquals(assignments.Select(assignment => assignment.Field))
+                && localFt.Count == 2 && localFt.Contains("group") && !localFt.Contains("group.amountA")
+                && !expected.SetEquals(localFt),
+                "canonical childless set agrees with independent inspection and excludes local-type parent");
+        }
+        bool Refused(IReadOnlyList<FieldAssignment> altered, string expectedMessage)
+        {
+            try { _ = VerifiedFormRenderer.Render(template, configuration, binding, altered, flatten: false); return false; }
+            catch (VerifiedFillException error)
+            {
+                return error.Code == "E_FILL_ASSIGNMENTS" && error.ExitCode == 4 && error.SafeMessage == expectedMessage;
+            }
+        }
+        const string coverage = "The assignment manifest must cover every terminal field exactly once.";
+        check(Refused(assignments.Where(assignment => assignment.Field != "group.amountA").ToArray(), coverage),
+            "canonical coverage refuses missing inherited leaf assignment");
+        check(Refused([assignments[0], assignments[0]], coverage),
+            "canonical coverage refuses duplicate leaf assignment");
+        check(Refused([assignments[0] with { Field = "group" }, assignments[1]],
+                "The assignment manifest and canonical field inventory disagree."),
+            "canonical inventory refuses equal-count distinct parent substitution");
+    }
+
+    // This temporary test diagnostic emits only bounded enums/numbers and a
+    // closed set of fixed product finding codes. No finding text, keys, fields,
+    // values, paths, PDF bytes or arbitrary exception messages are emitted.
+    private static readonly HashSet<string> DiagnosticCodes = new("""
+            E_ACTIVE_CONTENT E_ALL_OR_NONE E_APPROVAL_SIGNATURE E_ASSIGNMENT_COVERAGE E_ASSIGNMENT_VALIDATION E_CALENDAR_DAY
+            E_CATALOG_BUILTIN_IDENTITY E_CATALOG_DATE_GEOMETRY E_CATALOG_DATE_LAYOUT_CONFLICT E_CATALOG_DATE_LAYOUT_REQUIRED E_CATALOG_FONT E_CATALOG_ISSUES
+            E_CATALOG_MARK_GEOMETRY E_CATALOG_ON_STATE E_CATALOG_POLICY_UNSUPPORTED E_CATALOG_PROFILE E_CATALOG_PROFILE_HASH E_CATALOG_PROFILE_IDENTITY
+            E_CATALOG_REVIEW E_CATALOG_REVIEW_REQUIRED E_CATALOG_SCHEMA E_CATALOG_SNAPSHOT E_CATALOG_TARGETS E_CATALOG_TARGET_COVERAGE
+            E_CATALOG_TARGET_PAGE E_CATALOG_TARGET_REQUIRED E_CATALOG_TARGET_TYPE E_CATALOG_TEMPLATE E_CATALOG_TEMPLATE_HASH E_CERTIFICATION
+            E_CHECKBOX E_CHECKBOX_ON_STATE E_CHECKBOX_VECTOR_GEOMETRY E_CHECKBOX_VECTOR_SCOPE E_CHECKBOX_VECTOR_STRATEGY E_CONFIGURATION_FIELD_ID
+            E_CONFIGURATION_POLICY E_CONFIGURATION_TEMPLATE E_CONFIG_CHECKBOX_GEOMETRY E_CONFIG_CHECKBOX_TARGET E_CONFIG_DATE_LAYOUT E_CONFIG_FONT_IDENTITY
+            E_CONFIG_FONT_PROGRAM E_CONFIG_FONT_SIZE E_CONFIG_FONT_STRATEGY E_CONFIG_FONT_STRUCTURE E_CONFIG_TEXT_LAYOUT E_CONFIG_TEXT_TARGET
+            E_CONFIG_WIDGET_ATTRIBUTES E_CONFIG_WIDGET_BOUNDS E_CONFIG_WIDGET_ROTATION E_CONTEXT E_CONTEXT_QUARTER E_CONTEXT_SCHEDULE
+            E_CONTEXT_SCHEDULE_B E_CONTEXT_YEAR E_DATA_LIMIT E_DATA_PROFILE E_DATA_SCHEMA E_DATA_SCHEMA_PAIR
+            E_DATE E_DATE_FONT_PROGRAM E_DATE_GLYPH_BOUNDS E_DATE_LAYOUT_BOUNDS E_DATE_LAYOUT_GEOMETRY E_DATE_LAYOUT_HASH
+            E_DATE_LAYOUT_REQUIRED E_DATE_LAYOUT_TARGET E_DATE_LAYOUT_UNREVIEWED E_DATE_LAYOUT_UNSUPPORTED E_DATE_LAYOUT_VALUE E_EMBEDDED_CONTENT
+            E_EQUAL E_EXTENSIONS E_FIELD_ATTRIBUTE E_FIELD_CAPABILITY E_FIELD_CYCLE E_FIELD_NAME
+            E_FIELD_NO_WIDGET E_FIELD_PARENT E_FIELD_POLICY E_FIELD_TREE E_FIELD_TYPE E_FILING_YEAR
+            E_FILL_ASSIGNMENTS E_FILL_BINDING E_FILL_CHECKBOX_POLICY E_FILL_FIELD_TREE E_FILL_FIELD_TYPE E_FILL_FORM
+            E_FILL_GEOMETRY E_FILL_INTERNAL E_FILL_NOT_VERIFIED E_FILL_ON_AP E_FILL_ON_STATE E_FILL_OUTPUT_LIMIT
+            E_FILL_PAGE_TRANSFORM E_FILL_POLICY_COVERAGE E_FILL_POLICY_TARGET E_FILL_TEMPLATE E_FILL_WIDGETS E_FILL_WIDGET_ATTRIBUTES
+            E_FIT_INTERNAL E_FIT_KEY E_FLATTEN_FORM E_FONT_ASSET E_FONT_DOCUMENT E_FONT_EMBEDDED_POLICY
+            E_FONT_FIXED_SIZE E_FONT_GLYPH E_FONT_GLYPH_UNQUALIFIED E_FONT_IMPORT E_FONT_MAPPING E_FONT_METRICS
+            E_FONT_NOT_EMBEDDED E_FONT_OUTLINE_GLYPH E_FONT_PROGRAM E_FONT_PROGRAM_LIMIT E_FONT_RESOURCE E_FONT_RESOURCE_IDENTITY
+            E_FONT_SEED E_FONT_SEED_LIMIT E_FONT_STRATEGY E_INACTIVE_SECTION E_INPUT_JSON E_JOB_DOCUMENTS
+            E_JOB_OUTPUT E_JOB_POLICY E_JOB_SCHEMA E_JOB_SOURCE E_JSON_DUPLICATE E_JSON_MEMBERS
+            E_JSON_SIZE E_JSON_UNICODE E_JSON_UTF8 E_MONEY E_MONEY_NEGATIVE E_NORMALIZATION_FORM
+            E_NORMALIZATION_UNAPPROVED E_NORMALIZATION_VERIFY E_NO_ACROFORM E_NO_FIELDS E_OPTION E_ORPHAN_WIDGET
+            E_PACKET_CONTEXT E_PACKET_FLATTEN E_PACKET_IDENTITY E_PACKET_INPUT E_PACKET_PAGES E_PACKET_PROFILE
+            E_PACKET_SCHEDULE_B E_PACKET_TOTAL E_PATTERN E_PATTERN_TIMEOUT E_PDF_BOOLEAN E_PDF_ENCRYPTED
+            E_PDF_INPUT E_PDF_LIMIT E_PDF_PARSE E_PDF_SIZE E_PERMISSION_UNKNOWN E_PROFILE_CAPABILITY
+            E_PROFILE_CHECKBOX E_PROFILE_CONDITION E_PROFILE_DATE E_PROFILE_DATE_LAYOUT E_PROFILE_IDENTITY E_PROFILE_JSON
+            E_PROFILE_KEY E_PROFILE_KIND E_PROFILE_KIND_MEMBER E_PROFILE_LIMIT E_PROFILE_MONEY E_PROFILE_NORMALIZATION
+            E_PROFILE_NOT_RELEASED E_PROFILE_ONEOF E_PROFILE_PATTERN E_PROFILE_REVIEW_PENDING E_PROFILE_RULE_ID E_PROFILE_RULE_KIND
+            E_PROFILE_RULE_OPERANDS E_PROFILE_RULE_SEVERITY E_PROFILE_SAMPLE_HINT E_PROFILE_SCHEMA E_PROFILE_SIZE E_PROFILE_SNAPSHOT
+            E_PROFILE_SOURCE E_PROFILE_SPLIT E_PROFILE_TARGETS E_PROFILE_TARGET_OWNER E_PROFILE_UNMAPPED E_PROFILE_YEARS
+            E_PROFILE_ZERO E_RELEASE_PROFILE_INVALID E_REQUEST_ID E_REQUIRED E_REQUIRED_IF E_REVIEWED_STRUCTURE
+            E_SPLIT_CAPACITY E_SPLIT_LENGTH E_SUM E_TARGET_ALIGNMENT E_TARGET_FLAGS E_TARGET_FONT
+            E_TARGET_LENGTH E_TARGET_MISSING E_TARGET_OVERLAP E_TARGET_REQUIRED E_TARGET_TYPE E_TARGET_UNMAPPED
+            E_TARGET_WIDGETS E_TEMPLATE_ALLOWLIST E_TEMPLATE_CONTRACT E_TEMPLATE_HASH E_TEMPLATE_NOT_REVIEWED E_TEMPLATE_PAGES
+            E_TEMPLATE_PREFILLED E_TEMPLATE_PROFILE E_TEMPLATE_STRUCTURE E_TEMPLATE_TITLE E_TEXT_COMB_CAPACITY E_TEXT_COMB_OVERFLOW
+            E_TEXT_CONTROL E_TEXT_LAYOUT E_TEXT_LENGTH E_TEXT_LIMIT E_TEXT_MAX_LENGTH E_TEXT_OVERFLOW
+            E_TEXT_VERTICAL_OVERFLOW E_UNKNOWN_KEY E_UNMAPPED_UNSUPPORTED E_USAGE_RIGHTS_UNAPPROVED E_VALUE_TYPE E_VERIFY_ACTIVE_CONTENT
+            E_VERIFY_ALTERNATE_AP E_VERIFY_ANCESTOR_VALUE E_VERIFY_AP_BBOX E_VERIFY_AP_CLIP E_VERIFY_AP_CLIPPED_INK E_VERIFY_AP_COLOR
+            E_VERIFY_AP_ENCODING E_VERIFY_AP_FONT E_VERIFY_AP_FONT_MAPPING E_VERIFY_AP_FONT_PROGRAM E_VERIFY_AP_GLYPHS E_VERIFY_AP_IMAGE
+            E_VERIFY_AP_INK_BOUNDS E_VERIFY_AP_OPERATOR E_VERIFY_AP_ORIENTATION E_VERIFY_AP_OUTLINE E_VERIFY_AP_RESOURCE_CYCLE E_VERIFY_AP_RESOURCE_LIMIT
+            E_VERIFY_AP_SCALE E_VERIFY_AP_STATE E_VERIFY_AP_TEXT E_VERIFY_AP_TEXT_STATE E_VERIFY_AP_TRANSFORM E_VERIFY_AP_VISIBILITY
+            E_VERIFY_CHECKBOX_AP E_VERIFY_CHECKBOX_BBOX E_VERIFY_CHECKBOX_DICTIONARY E_VERIFY_CHECKBOX_POLICY E_VERIFY_CHECKBOX_RESOURCES E_VERIFY_CHECKBOX_STATE
+            E_VERIFY_CHECKBOX_VECTOR E_VERIFY_COMB_CAPACITY E_VERIFY_COMB_CELL E_VERIFY_CONTENT_LIMIT E_VERIFY_DATE_CELL E_VERIFY_DATE_GLYPHS
+            E_VERIFY_DATE_POSITION E_VERIFY_FIELD_ATTRIBUTES E_VERIFY_FIELD_FONT_DEFAULT E_VERIFY_FIELD_FONT_RESOURCE E_VERIFY_FIELD_SET E_VERIFY_FIELD_TREE
+            E_VERIFY_FIELD_TYPE E_VERIFY_FINAL_ACTIVE_CONTENT E_VERIFY_FINAL_FIELDS E_VERIFY_FINAL_WIDGETS E_VERIFY_FLATTEN_AP E_VERIFY_FLATTEN_CHECKBOX_RESOURCE
+            E_VERIFY_FLATTEN_MARKED_CONTENT E_VERIFY_FLATTEN_MATRIX E_VERIFY_FLATTEN_OPERATOR E_VERIFY_FLATTEN_PAINT E_VERIFY_FLATTEN_PAINT_MISSING E_VERIFY_FLATTEN_PLACEMENT
+            E_VERIFY_FLATTEN_STATE E_VERIFY_FLATTEN_WITNESS E_VERIFY_FONT_LIMIT E_VERIFY_FONT_POLICY E_VERIFY_FORM E_VERIFY_METADATA
+            E_VERIFY_NEED_APPEARANCES E_VERIFY_OFF_AP E_VERIFY_ON_AP_CHANGED E_VERIFY_ORPHAN_WIDGET E_VERIFY_PAGE_CONTENT E_VERIFY_PAGE_COUNT
+            E_VERIFY_PAGE_GEOMETRY E_VERIFY_RESET_DEFAULT E_VERIFY_RICH_VALUE E_VERIFY_TEXT_AP E_VERIFY_TEXT_STATE E_VERIFY_TEXT_VALUE
+            E_VERIFY_WIDGETS E_VERIFY_WIDGET_ALIAS E_VERIFY_WIDGET_ATTRIBUTES E_VERIFY_WIDGET_GEOMETRY E_VERIFY_WIDGET_LINKAGE E_VERIFY_WIDGET_PAGE
+            E_VERIFY_WIDGET_VALUE E_VERIFY_WIDGET_VISIBILITY E_WIDGET_DUPLICATE E_WIDGET_GEOMETRY E_WIDGET_NOT_ON_PAGE E_WIDGET_PARENT
+            E_XFA_UNSUPPORTED E_XFA_XML W_ACCEPTANCE_NOT_COMPLETE W_CATALOG_JAVASCRIPT_REMOVAL W_CHECKBOX_FONT_PORTABILITY_UNQUALIFIED W_FONT_EXPLICIT_REPLACEMENT
+            W_FONT_NOT_EMBEDDED W_FONT_UNEMBEDDED_PORTABILITY_UNQUALIFIED W_NORMAL_OFF_MISSING
+            """.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+    private static void EmitPreparationDiagnostic(float size, string scenario, VerifiedFillResult result)
+    {
+        static string Stage(string stage) => stage is "syntax" or "profile" or "binding" or "bindingStructure"
+            or "data" or "packet" or "render" or "internal" ? stage : "unknown_stage";
+        var findings = result.Findings.Take(32).Select(f => new
+        {
+            code = DiagnosticCodes.Contains(f.Code) ? f.Code : "unknown_code",
+            stage = Stage(f.Stage), severity = f.Severity is "warning" or "error" ? f.Severity : "unknown_severity"
+        }).ToArray();
+        Console.Error.WriteLine("DIAG_CONFIGURED_FONT " + JsonSerializer.Serialize(new
+        {
+            schema = "pdfform.configured-font-diagnostic/1", size,
+            scenario = scenario is "populated" or "blank" ? scenario : "unknown_scenario",
+            exitCode = result.ExitCode is >= 0 and <= 4 ? result.ExitCode : -1,
+            ready = result.ReadyToPublish, findingCount = result.Findings.Count,
+            findings, truncated = result.Findings.Count > 32
+        }));
+    }
+
+    // This probe is limited to the first existing synthetic populated control.
+    // It adds one direct Render call solely to classify the constant internal
+    // guard message that the public configured API deliberately suppresses.
+    private static void EmitAssignmentGuardDiagnostic(TemplateSnapshot template,
+        FormConfigurationSnapshot configuration, Dictionary<string, string> values)
+    {
+        string stage = "parse", outcome = "not_run", guard = "not_reached", errorCode = "none";
+        int errorExit = -1, assignmentCount = -1, assignmentDistinctCount = -1, inspectedCount = -1,
+            inspectedNamedCount = -1, allWrapperCount = -1, localFtCount = -1, canonicalLeafCount = -1,
+            localFtNonLeafCount = -1, inheritedFtLeafCount = -1;
+        bool bound = false, dataValid = false, assignmentInspectionEqual = false,
+            assignmentLocalFtEqual = false, assignmentCanonicalLeafEqual = false,
+            inspectionCanonicalLeafEqual = false;
+        try
+        {
+            var parsed = DataValidator.ParseData(Data(configuration, values));
+            if (!parsed.IsValid || parsed.Value is not { } data)
+                throw new InvalidOperationException("PROBE_PARSE_REFUSED");
+            stage = "validate";
+            var profile = configuration.ParseProfile();
+            var validation = DataValidator.Validate(profile, data);
+            dataValid = validation.IsValid;
+            if (!dataValid) throw new InvalidOperationException("PROBE_DATA_REFUSED");
+            stage = "bind";
+            var binding = new TemplateBinder().Bind(template, configuration);
+            bound = binding.Bound;
+            if (!bound) throw new InvalidOperationException("PROBE_BINDING_REFUSED");
+            stage = "assignments";
+            var assignments = AssignmentPlanner.Build(validation);
+            var assignedNames = assignments.Select(a => a.Field).ToHashSet(StringComparer.Ordinal);
+            assignmentCount = assignments.Count;
+            assignmentDistinctCount = assignedNames.Count;
+            inspectedCount = binding.Inspection.TerminalFieldCount;
+            inspectedNamedCount = binding.Inspection.NamedFields.Count;
+            assignmentInspectionEqual = assignedNames.SetEquals(binding.Inspection.NamedFields.Keys);
+            stage = "normalized_inventory";
+            using (var output = new BoundedPdfMemoryStream())
+            using (var pdf = ApprovedTemplateNormalizer.OpenForNormalization(template, output, configuration))
+            {
+                var form = PdfAcroForm.GetAcroForm(pdf, false)
+                    ?? throw new InvalidOperationException("PROBE_FORM_MISSING");
+                var all = form.GetAllFormFields();
+                if (all.Count > Limits.MaxKeysOrTargets)
+                    throw new InvalidOperationException("PROBE_INVENTORY_LIMIT");
+                var localFt = all.Where(pair => pair.Value.IsTerminalFormField()).ToArray();
+                var leaves = all.Where(pair => pair.Value.GetChildFormFields().Count == 0).ToArray();
+                allWrapperCount = all.Count;
+                localFtCount = localFt.Length;
+                canonicalLeafCount = leaves.Length;
+                localFtNonLeafCount = localFt.Count(pair => pair.Value.GetChildFormFields().Count != 0);
+                inheritedFtLeafCount = leaves.Count(pair => !pair.Value.GetPdfObject().ContainsKey(PdfName.FT)
+                    && VerifiedFormRenderer.Inherited(pair.Value.GetPdfObject(), PdfName.FT, null) is PdfName);
+                assignmentLocalFtEqual = assignedNames.SetEquals(localFt.Select(pair => pair.Key));
+                assignmentCanonicalLeafEqual = assignedNames.SetEquals(leaves.Select(pair => pair.Key));
+                inspectionCanonicalLeafEqual = binding.Inspection.NamedFields.Keys.ToHashSet(StringComparer.Ordinal)
+                    .SetEquals(leaves.Select(pair => pair.Key));
+            }
+            stage = "render";
+            _ = VerifiedFormRenderer.Render(template, configuration, binding, assignments, flatten: false);
+            outcome = "render_returned";
+            guard = "no_assignment_guard";
+        }
+        catch (VerifiedFillException error)
+        {
+            outcome = "verified_exception";
+            errorCode = DiagnosticCodes.Contains(error.Code) ? error.Code : "unknown_code";
+            errorExit = error.ExitCode is >= 0 and <= 4 ? error.ExitCode : -1;
+            guard = stage == "render" && error.Code == "E_FILL_ASSIGNMENTS" && error.ExitCode == 4
+                ? error.SafeMessage switch
+                {
+                    "The assignment manifest must cover every terminal field exactly once." => "initial_coverage",
+                    "The assignment manifest and canonical field inventory disagree." => "normalized_inventory",
+                    "Replacement requires every canonical field exactly once." => "replacement_inventory",
+                    _ => "unmapped_assignment_guard"
+                } : "other_verified_guard";
+        }
+        catch
+        {
+            outcome = "probe_exception"; // Never serialize arbitrary exception text/type or input identifiers.
+        }
+        Console.Error.WriteLine("DIAG_ASSIGNMENT_GUARD " + JsonSerializer.Serialize(new
+        {
+            schema = "pdfform.assignment-guard-diagnostic/1", size = 1, scenario = "populated",
+            stage, outcome, guard, errorCode, errorExit, bound, dataValid,
+            assignmentCount, assignmentDistinctCount, inspectedCount, inspectedNamedCount,
+            allWrapperCount, localFtCount, canonicalLeafCount, localFtNonLeafCount, inheritedFtLeafCount,
+            assignmentInspectionEqual, assignmentLocalFtEqual, assignmentCanonicalLeafEqual,
+            inspectionCanonicalLeafEqual
+        }));
     }
 
     // Additive v6 registration: RunExtensions(check, root). Exactly56 healthy-
@@ -378,6 +622,10 @@ internal static class ConfiguredBundledFontTests
     // Exactly42 checks:3 sizes *2 blank/populated states *(1 no-op +2 nodes *3 faults).
     internal static void RunPreservedDefaultCorrection(Action<bool, string> check, string root)
     {
+        // Preserve all six public preparations before the unchanged fail-fast controls.
+        // Diagnostics contain only closed codes, fixed case labels and structural facts.
+        var controls = new List<(float Size, bool Populated, TemplateSnapshot Template,
+            FormConfigurationSnapshot Configuration, Dictionary<string, string> Values, VerifiedFillResult Result)>();
         foreach (float size in new[] { 1f, 10, 72 })
         foreach (bool populated in new[] { false, true })
         {
@@ -385,6 +633,19 @@ internal static class ConfiguredBundledFontTests
             var configuration = ExtensionConfiguration(template, "preserve-embedded-simple-v1");
             var values = configuration.ParseProfile().Keys.ToDictionary(key => key.Key, _ => populated ? "11" : "", StringComparer.Ordinal);
             var result = VerifiedFillPipeline.Prepare(template, configuration, Data(configuration, values), flatten: false);
+            EmitPreservedPreparationDiagnostic(size, populated, result);
+            controls.Add((size, populated, template, configuration, values, result));
+        }
+        CheckSplitWidgetCanonicalControls(check, controls[0].Template, controls[0].Configuration, controls[0].Values);
+        if (controls[0].Result.Candidate is null)
+            EmitPreservedRenderDiagnostic(controls[0].Template, controls[0].Configuration, controls[0].Values);
+        foreach (var control in controls)
+        {
+            float size = control.Size;
+            bool populated = control.Populated;
+            var template = control.Template;
+            var configuration = control.Configuration;
+            var result = control.Result;
             var candidate = result.Candidate ?? throw new InvalidOperationException("Preserved-default positive setup failed.");
             string fieldKey = candidate.ManifestForFixture.Targets.Keys.Order(StringComparer.Ordinal).First();
             byte[] roundtrip = CorrectionMutate(candidate.CopyForFixture(), pdf => { _ = Fields(PdfAcroForm.GetAcroForm(pdf, false)!); });
@@ -427,6 +688,139 @@ internal static class ConfiguredBundledFontTests
                     "v7/preserved-default-tamper/" + size + "/" + populated + "/" + nodeIndex + "/" + fault);
             }
         }
+    }
+
+    private static void CheckSplitWidgetCanonicalControls(Action<bool, string> check, TemplateSnapshot template,
+        FormConfigurationSnapshot configuration, Dictionary<string, string> values)
+    {
+        var binding = new TemplateBinder().Bind(template, configuration);
+        var parsed = DataValidator.ParseData(Data(configuration, values));
+        if (!binding.Bound || !parsed.IsValid || parsed.Value is not { } data)
+            throw new InvalidOperationException("split-widget-control-admission");
+        var validation = DataValidator.Validate(configuration.ParseProfile(), data);
+        if (!validation.IsValid) throw new InvalidOperationException("split-widget-control-data");
+        var assignments = AssignmentPlanner.Build(validation);
+        using var pdf = new PdfDocument(VerifiedFormRenderer.Reader(ExtensionBytes(template)));
+        var form = PdfAcroForm.GetAcroForm(pdf, false)!;
+        var all = form.GetAllFormFields();
+        var selected = Fields(form);
+        var expected = new HashSet<string>(["group.amountA", "group.amountB"], StringComparer.Ordinal);
+        check(all.Count == 3 && expected.SetEquals(selected.Keys)
+            && expected.SetEquals(binding.Inspection.NamedFields.Keys)
+            && expected.SetEquals(assignments.Select(assignment => assignment.Field))
+            && all.Values.All(field => field.GetChildFormFields().Count > 0)
+            && PdfName.Tx.Equals(all["group"].GetPdfObject().GetAsName(PdfName.FT))
+            && !selected["group.amountA"].GetPdfObject().ContainsKey(PdfName.FT)
+            && PdfName.Tx.Equals(VerifiedFormRenderer.Inherited(selected["group.amountA"].GetPdfObject(), PdfName.FT, null)),
+            "split widgets retain canonical names while old childless wrappers select none");
+        check(selected.Values.All(field =>
+        {
+            var canonical = field.GetPdfObject();
+            var widget = field.GetWidgets().Single().GetPdfObject();
+            var child = field.GetChildFormFields().Single().GetPdfObject();
+            return canonical.GetAsString(PdfName.T) is not null && !PdfName.Widget.Equals(canonical.GetAsName(PdfName.Subtype))
+                && PdfName.Widget.Equals(widget.GetAsName(PdfName.Subtype)) && !widget.ContainsKey(PdfName.T)
+                && !widget.ContainsKey(PdfName.FT) && widget.GetAsString(PdfName.DA) is not null
+                && widget.GetAsString(PdfName.DA)!.ToUnicodeString() == canonical.GetAsString(PdfName.DA)?.ToUnicodeString()
+                && widget.ContainsKey(PdfName.DR) == canonical.ContainsKey(PdfName.DR)
+                && !Equals(canonical.GetIndirectReference(), widget.GetIndirectReference())
+                && Equals(child.GetIndirectReference(), widget.GetIndirectReference())
+                && Equals(widget.GetAsDictionary(PdfName.Parent)?.GetIndirectReference(), canonical.GetIndirectReference())
+                && Equals(canonical.GetAsArray(PdfName.Kids)?.GetAsDictionary(0)?.GetIndirectReference(), widget.GetIndirectReference());
+        }), "split widgets preserve distinct dictionary ownership and local default appearance");
+
+        // A local /FT on an unnamed widget must not introduce the flattened
+        // wrapper's synthetic trailing-dot name as a new canonical field.
+        byte[] localTypeBytes = CorrectionMutate(ExtensionBytes(template), changed =>
+            Fields(PdfAcroForm.GetAcroForm(changed, false)!)["group.amountA"].GetWidgets()[0].GetPdfObject()
+                .Put(PdfName.FT, PdfName.Tx));
+        var localTypeTemplate = TemplateSnapshot.FromBytes(localTypeBytes);
+        var localTypeConfiguration = ExtensionConfiguration(localTypeTemplate, "preserve-embedded-simple-v1");
+        var localTypeBinding = new TemplateBinder().Bind(localTypeTemplate, localTypeConfiguration);
+        var localTypeValues = localTypeConfiguration.ParseProfile().Keys.ToDictionary(key => key.Key, _ => "11", StringComparer.Ordinal);
+        var localTypeResult = VerifiedFillPipeline.Prepare(localTypeTemplate, localTypeConfiguration,
+            Data(localTypeConfiguration, localTypeValues), flatten: false);
+        using var localTypePdf = new PdfDocument(VerifiedFormRenderer.Reader(localTypeBytes));
+        var localTypeForm = PdfAcroForm.GetAcroForm(localTypePdf, false)!;
+        check(localTypeForm.GetAllFormFields().ContainsKey("group.amountA.")
+            && expected.SetEquals(Fields(localTypeForm).Keys)
+            && localTypeBinding.Bound && expected.SetEquals(localTypeBinding.Inspection.NamedFields.Keys)
+            && localTypeResult.ReadyToPublish && localTypeResult.Candidate is { } localTypeCandidate
+            && CorrectionDistinctWidgets(localTypeCandidate.CopyForFixture()),
+            "unnamed widget local type cannot overwrite or add a canonical field name");
+    }
+
+    private static void EmitPreservedPreparationDiagnostic(float size, bool populated, VerifiedFillResult result)
+    {
+        var findings = result.Findings.Take(32).Select(finding => new
+        {
+            code = DiagnosticCodes.Contains(finding.Code) ? finding.Code : "unknown_code",
+            stage = finding.Stage is "syntax" or "profile" or "binding" or "bindingStructure" or "data" or "packet"
+                or "render" or "internal" ? finding.Stage : "unknown_stage",
+            severity = finding.Severity is "warning" or "error" ? finding.Severity : "unknown_severity"
+        }).ToArray();
+        Console.Error.WriteLine("DIAG_PRESERVED_DEFAULT " + JsonSerializer.Serialize(new
+        {
+            schema = "pdfform.preserved-default-diagnostic/1", size, scenario = populated ? "populated" : "blank",
+            exitCode = result.ExitCode is >= 0 and <= 4 ? result.ExitCode : -1,
+            ready = result.ReadyToPublish, findingCount = result.Findings.Count, findings,
+            truncated = result.Findings.Count > 32
+        }));
+    }
+
+    // One bounded first-blank synthetic probe preserves the public Prepare result.
+    // It reports a closed method label, never exception messages, values or field names.
+    private static void EmitPreservedRenderDiagnostic(TemplateSnapshot template,
+        FormConfigurationSnapshot configuration, Dictionary<string, string> values)
+    {
+        string stage = "parse", outcome = "not_run", errorCode = "none";
+        int errorExit = -1;
+        bool dataValid = false, bindingReady = false;
+        string[] frames = [];
+        var allowedFrames = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "VerifiedFormRenderer.Render", "VerifiedFormRenderer.RenderCore", "VerifiedFormRenderer.PrepareTarget",
+            "VerifiedFormRenderer.ReplaceAll", "VerifiedFormRenderer.ReplaceText", "VerifiedFormRenderer.VerifyEditable",
+            "VerifiedFormRenderer.CheckTargetForReplacement", "VerifiedFormRenderer.CheckPolicyCoverage",
+            "NativeTextAppearance.ResolveConfiguredFont", "NativeTextAppearance.ResolvePreservedFont",
+            "NativeTextAppearance.SetPreservedDefaults", "NativeTextAppearance.VerifyPreservedDefaults",
+            "NativeTextAppearance.VerifyFont", "NativeTextAppearance.Verify", "NativeTextAppearance.CheckFit",
+            "TemplateBinder.Bind", "ApprovedTemplateNormalizer.OpenForNormalization"
+        };
+        try
+        {
+            var parsed = DataValidator.ParseData(Data(configuration, values));
+            if (!parsed.IsValid || parsed.Value is not { } data) throw new InvalidOperationException("PROBE_PARSE_REFUSED");
+            stage = "validate";
+            var validation = DataValidator.Validate(configuration.ParseProfile(), data);
+            dataValid = validation.IsValid;
+            if (!dataValid) throw new InvalidOperationException("PROBE_DATA_REFUSED");
+            stage = "bind";
+            var bound = new TemplateBinder().Bind(template, configuration);
+            bindingReady = bound.Bound;
+            if (!bindingReady) throw new InvalidOperationException("PROBE_BINDING_REFUSED");
+            stage = "render";
+            _ = VerifiedFormRenderer.Render(template, configuration, bound, AssignmentPlanner.Build(validation), flatten: false);
+            outcome = "render_returned";
+        }
+        catch (Exception error)
+        {
+            outcome = error is VerifiedFillException ? "verified_exception" : "other_exception";
+            if (error is VerifiedFillException verified)
+            {
+                errorCode = DiagnosticCodes.Contains(verified.Code) ? verified.Code : "unknown_code";
+                errorExit = verified.ExitCode is >= 0 and <= 4 ? verified.ExitCode : -1;
+            }
+            frames = (new System.Diagnostics.StackTrace(error, false).GetFrames() ?? [])
+                .Select(frame => frame.GetMethod()).Where(method => method is not null)
+                .Select(method => method!.DeclaringType?.Name + "." + method.Name)
+                .Where(allowedFrames.Contains).Take(8).ToArray();
+        }
+        Console.Error.WriteLine("DIAG_PRESERVED_RENDER " + JsonSerializer.Serialize(new
+        {
+            schema = "pdfform.preserved-render-diagnostic/1", size = 1, scenario = "blank",
+            stage, dataValid, bindingReady, outcome, errorCode, errorExit, frames
+        }));
     }
 
     private static TemplateSnapshot CorrectionSplitWidgets(TemplateSnapshot snapshot)
@@ -649,8 +1043,22 @@ internal static class ConfiguredBundledFontTests
             ?? throw new InvalidOperationException("Synthetic rendering configuration was refused.");
     }
 
-    private static Dictionary<string, PdfFormField> Fields(PdfAcroForm form) => form.GetAllFormFields()
-        .Where(pair => pair.Value.IsTerminalFormField()).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+    private static Dictionary<string, PdfFormField> Fields(PdfAcroForm form)
+    {
+        static IEnumerable<KeyValuePair<string, PdfFormField>> Walk(PdfFormField field, string prefix)
+        {
+            var part = field.GetPdfObject().GetAsString(PdfName.T)?.ToUnicodeString();
+            string name = part is null ? prefix : prefix.Length == 0 ? part : prefix + "." + part;
+            var children = field.GetChildFormFields().Where(child =>
+                !PdfName.Widget.Equals(child.GetPdfObject().GetAsName(PdfName.Subtype))
+                || child.GetPdfObject().ContainsKey(PdfName.T)).ToArray();
+            if (children.Length == 0) yield return new(name, field);
+            else foreach (var child in children)
+                foreach (var leaf in Walk(child, name)) yield return leaf;
+        }
+        return form.GetRootFormFields().Values.SelectMany(field => Walk(field, ""))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+    }
 
     private static byte[] Data(FormConfigurationSnapshot configuration, Dictionary<string, string> values) =>
         JsonSerializer.SerializeToUtf8Bytes(new { schema = "pdfform.data/3", profile = configuration.ParseProfile().Identity, values }, StrictJson.Options);
