@@ -23,6 +23,10 @@ This repository contains source, not a runtime or binary distribution. Restore n
 
 On Bash, `tools/dotnet-env.sh` can isolate writable SDK/NuGet state under `.runtime`. Set `PDFFORM_DOTNET_ROOT` to an existing SDK directory, source the file from the repository root, and invoke `"$PDFFORM_DOTNET_ROOT/dotnet"` explicitly. Setting DOTNET_ROOT does not choose an executable from PATH. Also set `XDG_STATE_HOME="$PWD/.runtime/state"` and `NUGET_PLUGINS_CACHE_PATH="$PWD/.runtime/nuget-plugins"` if those variables are present in your environment. No SDK download is performed by the helper.
 
+## Path-normalized development handoff
+
+A separate framework-dependent Linux candidate rebuilt the four product assemblies with only `PathMap` added to the compiler settings. Its targeted eight CLI checks and six raster calls passed. The [candidate record and rebuild recipe](docs/PATHMAP-CANDIDATE.md) identify the exact source, archive and limits. This does not replace the historical full-regression evidence or qualify Windows, clean-machine, viewer, print or release use. This source repository does not contain the binary archive.
+
 ## CLI basics
 
 After the Debug build, run the managed CLI through the installed .NET host:

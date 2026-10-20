@@ -38,6 +38,14 @@ Independent inspection verified four canonical editable fields/widgets with exac
 
 Clean-room restore/build of the curated source, current Windows/native qualification, interactive viewer editing/save/reopen/reset, physical printing, supported binary packaging and filing readiness remain open. The 379-case Windows publication selection is still prospective. Earlier Windows focused corrections do not turn their separate incomplete full-gate results into passes. The earlier embedded-font two-form evidence remains specific to its original cut. See the [work-PC handoff](WORK-PC-ACCEPTANCE.md) for the remaining checks and dependencies.
 
+## Path-normalized Linux candidate accepted
+
+A separate development handoff was built from documentation commit `dfc3c1f03eff0a7896e72ce70563846fe0690847`, whose product code is unchanged from `7f1b19fd1526019d4589b0ea605e7eac83f21ad9`. The only new compiler property was `PathMap`; four project DLLs now use the virtual source root `/_/pdf-form-filler`. The 25 third-party DLLs and pinned dependency versions stayed unchanged.
+
+Eight staged CLI calls and six raster calls passed, including third-form editable/flattened structure and selected third-form/stock raster parity. Exact archive inspection accepted 93 regular files and 6,667,809 compressed bytes. Two exact upstream notice additions are now retained in the source tree. See the [candidate record](PATHMAP-CANDIDATE.md) for source, runtime, recipe, archive identity and Schedule B input qualification.
+
+The first build wrapper stopped on metadata assumptions after its two SDK commands succeeded; that wrapper failure remains a failure. Reviewed reconciliation reused the captured build, and a separate no-rebuild continuation completed the targeted checks. This candidate is a new binary identity with targeted Linux evidence. Historical full-regression results remain bound to the original binaries. There is no independent byte-for-byte reproducible rebuild, fresh-online/clean-machine restore, Windows-native, interactive viewer/reset, physical-print or release claim.
+
 ## Scope boundaries
 
 The legacy profile path admits its exact reviewed template/profile pairs. The new catalog path requires a reviewed exact-byte package and independently observed supported PDF structure. Neither path permits hash mismatch overrides, unsupported-feature enrollment, force replacement or complete job/packet publication. Data-level packet consistency APIs do not imply the disabled `run` command is implemented. Filing readiness stays `not_assessed`.
